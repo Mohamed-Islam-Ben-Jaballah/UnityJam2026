@@ -50,7 +50,7 @@ opened tile is gone. Completing a level grants a pack.
 
 ### Step 3 — Drag it to an area of use
 
-Walk up to the rolled die value. The path preview shows the route:
+Walk up to the rolled die value of movement. Diagonal steps cost 2; orthogonal steps cost 1. The path preview shows the route:
 
 - **Green** — safe.
 - **Orange/red** — crosses damaging tiles or melee enemies; you take HP damage.
@@ -58,7 +58,7 @@ Walk up to the rolled die value. The path preview shows the route:
 
 Holes need a **Jump**. Enemies have a speed: **fast** enemies attack when you
 enter their range; **slow** enemies attack at the start of the next turn if you
-stay in range. Melee range is the enemy's tile; ranged range is adjacent.
+stay in range. Melee range is the enemy's tile; ranged range is adjacent, including diagonals.
 
 <!-- SCREENSHOT: dragging a card, valid tiles highlighted -->
 
@@ -110,7 +110,7 @@ Reach the **exit** of each dungeon before the torch burns out.
   kept on a retry; the opened tile is gone. Gold's use is TBD.
 - **Enemies** hold their ground. **Fast** enemies attack when you enter their
   range. **Slow** enemies attack at the start of the next turn if you stay in
-  range. Melee range is the enemy's tile; ranged range is adjacent. Tank enemies
+  range. Melee range is the enemy's tile; ranged range is adjacent, including diagonals. Tank enemies
   have 2 HP and draw 2 on death; flying enemies ignore sand and cannot be jumped
   over.
 - **Terrain:** holes need a Jump or sand; damaging tiles cost HP; walls block.

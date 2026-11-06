@@ -128,7 +128,7 @@ cards.
 
 | Type | Card | Effect | Range | Target |
 |------|------|--------|-------|--------|
-| Normal | Walk | Move up to `diceValue` tiles | Move | tile within rolled range |
+| Normal | Walk | Move up to `diceValue` movement points (diagonal = 2, orthogonal = 1) | Move | tile within rolled movement |
 | Elf (3) | Leapol | Jump 1 | Jump (2, skip 1) | line, 2 tiles |
 | Elf (3) | Squimi | Deal 1 damage | Melee (1) | adjacent tile w/ enemy |
 | Elf (3) | Heilin | Heal 1 HP | Self | — |
@@ -143,8 +143,9 @@ cards.
 
 ### 4.3 Effect definitions
 
-- **Walk** — move up to `diceValue` tiles. The player picks the end tile and the
-  game auto-paths.
+- **Walk** — move up to `diceValue` movement points. The player picks the end
+  tile and the game auto-paths. A diagonal step costs 2; an orthogonal step
+  costs 1.
   - A **safe path** (green) avoids holes, walls, damaging tiles, and fast enemy
     ranges. Slow enemy ranges are shown as a telegraph overlay, not an HP cost.
   - If no safe path exists, an **orange/red path** crosses damaging tiles or fast
@@ -175,7 +176,7 @@ cards.
 Every card has a range defined relative to the player's current position:
 
 - **Self** — Heal, Draw, Seraphil, Zulfar.
-- **Melee** — target an adjacent tile (distance 1).
+- **Melee** — target an adjacent tile (8-way; a diagonal counts as 1 range).
 - **Move** — Walk: any valid end tile within `diceValue`.
 - **Jump** — fixed 2-tile leap (skip 1) in any of the 8 directions.
 
@@ -250,7 +251,7 @@ All enemies are stationary. They have two independent traits:
 | Type | Range | Slow behavior | Fast behavior |
 |------|-------|---------------|---------------|
 | Melee | the enemy's own tile | Attacks at the start of the next turn if the player stays on the tile | Attacks immediately when the player enters the tile |
-| Ranged | adjacent orthogonal tile | Attacks at the start of the next turn if the player stays in range | Attacks immediately when the player enters range |
+| Ranged | adjacent tile (8-way; diagonal = 1 range) | Attacks at the start of the next turn if the player stays in range | Attacks immediately when the player enters range |
 
 **Speed type**
 
@@ -344,7 +345,7 @@ or removals.
 | Enemy damage | 1 (all) |
 | Enemy HP | 1 normal, 2 tank |
 | Jump distance | 2 (skip 1) |
-| Walk | up to the rolled die value |
+| Walk | up to the rolled die value of movement; diagonal = 2, orthogonal = 1 |
 | Damaging tile | 1 HP per tile entered |
 | Heal | +1 HP |
 | Draw | 1 per die rolled at end of turn; 1 per kill immediately (2 for a tank) |
@@ -366,12 +367,14 @@ or removals.
 3. **Reroll** — only when no card is playable. First reroll free, later rerolls
    1 HP. A paid reroll at 1 HP kills the player.
 4. **Mandatory play** — if a playable card exists, the player must play one.
-5. **Movement** — Walk moves up to the die value. The player picks the end tile;
+5. **Movement** — Walk moves up to the die value of movement (diagonal = 2,
+   orthogonal = 1). The player picks the end tile;
    the game auto-paths. Safe paths are preferred; damaging paths cost HP;
    unreachable paths are grey. Holes require a Jump card.
 6. **Terrain** — three obstacle types: holes (jumpable), damaging (walkable at
    HP cost), walls (impassable). The player never falls into holes.
-7. **Enemies** — stationary. Attack type: melee (own tile) or ranged (adjacent).
+7. **Enemies** — stationary. Attack type: melee (own tile) or ranged (adjacent,
+   8-way; diagonal = 1 range).
    Speed type: fast (attacks on entry) or slow (attacks at the start of the next
    turn if the player stays; leaving cancels). Body type: normal, tank, flying.
 8. **Body types** — normal (1 HP, jumpable), tank (2 HP, kill draws 2), flying
@@ -426,3 +429,16 @@ or removals.
 13. **Opened treasure and retries.** Claimed cards are kept, but the tile is
     gone. Verify that a player cannot re-open the same treasure and that the
     claimed cards are not duplicated on a retry.
+
+---
+
+## 11. Presentation and integration
+
+- The card hand UI is `Assets/Scenes/Cards_Dice_UI.unity`, using
+  `CardSelection`, `HandView`, `CardView`, `HandLayout`, and `CardRevealView`.
+  It is a standalone selection demo; it does not yet drive `GameSession`.
+- The audio test scene is `Assets/Scenes/SoundDesign.unity`, using the FMOD
+  Studio project `FMOD/Test` and the `Master` bank. `CardSelectionAudio` plays a
+  card-select event when one is assigned; it is silent while unassigned.
+- The gameplay rules remain in `GameSession`. The planned bridge maps
+  `CardInstance` to `CardInfo` and routes selection into `PlayCard`.

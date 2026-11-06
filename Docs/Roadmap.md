@@ -19,7 +19,7 @@
   overflow discards the oldest.
 - [ ] Treasure adds 1–2 random cards. Completing the level merges them into the
   run deck; a retry restores the level-start deck.
-- [ ] Walk (up to die value) with auto-path: green safe, orange/red damaging or
+- [ ] Walk (up to die value of movement; diagonal = 2, orthogonal = 1) with auto-path: green safe, orange/red damaging or
   melee contact, grey unreachable.
 - [ ] Jump 1 (2-tile leap, 8 directions). Holes, damaging tiles, and non-flying
   enemies may be skipped; walls and flying enemies block.
@@ -35,7 +35,7 @@
 ## M2 — Combat & enemies
 - [ ] Player HP + enemy HP.
 - [ ] Damage / Heal / RemoveObstacle effects (melee ranges).
-- [ ] Attack types: melee (own tile) and ranged (adjacent).
+- [ ] Attack types: melee (own tile) and ranged (adjacent, 8-way; diagonal = 1 range).
 - [ ] Speed types: fast (attack on entry) and slow (attack at TurnStart if the
   player stays).
 - [ ] Layered occupancy: terrain, enemy, and player can share a tile.
@@ -83,6 +83,30 @@
 
 ---
 
+## Implementation status (post-merge)
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Core simulation | Implemented | Grid, pathfinder, dice, deck/hand/spent, entities, torch, `GameSession` loop, retry, win/lose. |
+| Balancing assets | Implemented | 6 card types, 12 cards, 6 enemies under `Assets/_Game/Data/`. |
+| Card UI | Merged, not wired | `Cards_Dice_UI.unity`, `CardSelection`, `HandView`, `CardView`, `HandLayout`, `CardRevealView`, TMP. |
+| Audio | Merged, not wired | `FMOD/Test` Studio project, `Master` bank, `SoundDesign.unity`, `CardSelectionAudio`. |
+| Integration | Pending | `HandPresenter` bridge from `GameSession.PlayerHand` to `CardSelection`; FMOD card-select event; runtime scene checks. |
+| Tests | Pending | No `_Game.Tests` assembly yet. |
+| Meta | Pending | Pack/bonus, run length, gold sink, dice schedule. |
+
+Merge commits: `60a5897` (SoundDesign), `868fa38` (MazenUI).
+
+## Next steps after the merge
+
+1. Add a `HandPresenter` bridge from `GameSession` to `CardSelection`.
+2. Assign a card-select FMOD event and verify `SoundDesign.unity`.
+3. Open `Cards_Dice_UI.unity` and verify deal, hover, select, and reveal.
+4. Wire the gameplay scene to the UI and add the `_Game.Tests` assembly.
+5. Implement the between-map meta.
+
+---
+
 ## Design decisions (resolved)
 - Cards are consumable; played cards never return this level. Claimed treasure
   enters the level deck immediately and is kept across retries; opened treasure
@@ -92,11 +116,11 @@
   tank). Hand cap 8; overflow discards the oldest.
 - Reroll: only when no card is playable. First reroll free, later rerolls 1 HP.
   A paid reroll at 1 HP kills.
-- Walk: up to the die value; player picks the end tile; auto-path prefers safe
+- Walk: up to the die value of movement (diagonal = 2, orthogonal = 1); player picks the end tile; auto-path prefers safe
   routes, then damaging or fast-enemy routes (HP cost), then unreachable.
 - Terrain: three obstacle types — holes (jumpable), damaging (walkable at HP
   cost), walls (impassable). The player never falls into holes.
-- Enemies: stationary. Attack type: melee (own tile) or ranged (adjacent). Speed
+- Enemies: stationary. Attack type: melee (own tile) or ranged (adjacent, 8-way). Speed
   type: fast (attacks on entry) or slow (attacks at the start of the next turn
   if the player stays; leaving cancels). Body types: normal, tank, flying.
 - Torch: real-time timer; burnout retries the level at the level-entry HP; it is
@@ -112,6 +136,12 @@
   commit them.
 - Art/audio binaries are Git LFS-tracked (already configured).
 - Scripts are split into `_Game.Runtime` and `_Game.Editor` assemblies.
+  `_Game.Runtime` references Unity.InputSystem, UnityEngine.UI,
+  Unity.TextMeshPro, and FMODUnity.
+- LFS covers art, fonts, and FMOD banks; run `git lfs fetch` after cloning.
+- FMOD Studio project: `FMOD/Test`; built bank:
+  `FMOD/Test/Build/Desktop/Master.bank`.
+- TMP essential resources: `Assets/TextMesh Pro`.
 - Add `DOTween.asmdef` if tweening is needed from `_Game.Runtime`.
 
 ---

@@ -268,8 +268,7 @@ namespace DiceDrive.Turn
         }
 
         public bool IsValidJump(GridCoord target)
-        {
-            var start = _player.Position;
+        {            var start = _player.Position;
             var dx = target.X - start.X;
             var dy = target.Y - start.Y;
 
@@ -323,6 +322,34 @@ namespace DiceDrive.Turn
             }
 
             return true;
+        }
+
+        public bool IsInEnemyRange(EnemyState enemy, GridCoord coord)
+        {
+            return IsInRange(enemy, coord);
+        }
+
+        public IEnumerable<GridCoord> GetEnemyRangeTiles(EnemyState enemy)
+        {
+            if (enemy == null || enemy.Data == null)
+            {
+                yield break;
+            }
+
+            if (enemy.Data.IsMelee)
+            {
+                yield return enemy.Position;
+                yield break;
+            }
+
+            foreach (var direction in GridCoord.EightDirections)
+            {
+                var coord = enemy.Position + direction;
+                if (_grid.InBounds(coord))
+                {
+                    yield return coord;
+                }
+            }
         }
 
         private void BeginTurn()
@@ -995,7 +1022,7 @@ namespace DiceDrive.Turn
                 return enemy.Position == coord;
             }
 
-            return enemy.Position.ManhattanDistance(coord) == 1;
+            return enemy.Position.ChebyshevDistance(coord) == 1;
         }
 
         private static bool IsAdjacent8(GridCoord a, GridCoord b)

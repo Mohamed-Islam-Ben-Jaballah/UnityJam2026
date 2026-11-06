@@ -15,13 +15,14 @@ namespace DiceDrive.Grid
         public PathState State { get; }
         public IReadOnlyList<GridCoord> Tiles { get; }
         public int HpCost { get; }
-        public int Steps => Tiles.Count - 1;
+        public int Steps { get; }
 
-        public PathResult(PathState state, IReadOnlyList<GridCoord> tiles, int hpCost)
+        public PathResult(PathState state, IReadOnlyList<GridCoord> tiles, int hpCost, int steps)
         {
             State = state;
             Tiles = tiles;
             HpCost = hpCost;
+            Steps = steps;
         }
     }
 
@@ -30,7 +31,7 @@ namespace DiceDrive.Grid
         public IReadOnlyDictionary<GridCoord, PathResult> FindPaths(
             GridMap map,
             GridCoord start,
-            int maxSteps,
+            int maxMovement,
             Func<GridCoord, bool> blocksWalk = null,
             Func<GridCoord, int> tileCost = null,
             int minSteps = 1)
@@ -41,7 +42,7 @@ namespace DiceDrive.Grid
                 throw new ArgumentNullException(nameof(map));
             }
 
-            if (maxSteps < 0)
+            if (maxMovement < 0)
             {
                 return results;
             }
@@ -81,8 +82,9 @@ namespace DiceDrive.Grid
                         continue;
                     }
 
-                    var steps = bestSteps[current] + 1;
-                    if (steps > maxSteps)
+                    var stepCost = direction.X != 0 && direction.Y != 0 ? 2 : 1;
+                    var steps = bestSteps[current] + stepCost;
+                    if (steps > maxMovement)
                     {
                         continue;
                     }
@@ -117,7 +119,7 @@ namespace DiceDrive.Grid
 
                 var path = BuildPath(previous, start, pair.Key);
                 var state = pair.Value == 0 ? PathState.Safe : PathState.Damaging;
-                results[pair.Key] = new PathResult(state, path, pair.Value);
+                results[pair.Key] = new PathResult(state, path, pair.Value, bestSteps[pair.Key]);
             }
 
             return results;

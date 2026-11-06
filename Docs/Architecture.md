@@ -28,15 +28,16 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ Presentation (MonoBehaviours)                                │
-│  CardView, DiceView, TileView, DragDrop, PathPreview,        │
-│  RangeHighlight, HUD, TorchView                              │
-│  DOTween animations, UGUI panels                             │
+│  CardSelectionService, HandView, CardView, CardRevealView,   │
+│  DiceView, TileView, DragDrop, PathPreview, RangeHighlight,  │
+│  HUD, TorchView, CardSelectionAudio                          │
+│  DOTween, UGUI + TextMesh Pro, FMOD events                   │
 └──────────────▲───────────────────────────────┬───────────────┘
                │ events (subscribe)            │ commands (dispatch)
 ┌──────────────┴───────────────────────────────▼───────────────┐
 │ Domain / Simulation (pure C#)                                 │
 │  Dice, DiceSet, Deck, Hand, SpentPile, Grid, Pathfinder,      │
-│  TurnStateMachine, CombatResolver, TorchTimer,                │
+│  GameSession (turn state machine), TorchTimer,                │
 │  CardEffect strategies                                        │
 └──────────────▲───────────────────────────────┬───────────────┘
                │ reads                         │ reads
@@ -46,7 +47,8 @@
 │  RunConfig                                                    │
 └───────────────────────────────────────────────────────────────┘
 
-Coordination: GameManager (bootstrap) + TurnManager (flow) + EventBus.
+Coordination: GameSession (turn flow, pure C#) + a thin presentation adapter
+(TurnManager) + EventBus.
 ```
 
 ---
@@ -54,26 +56,34 @@ Coordination: GameManager (bootstrap) + TurnManager (flow) + EventBus.
 ## 3. Folder structure
 
 ```
-Assets/_Game/
-├── Scripts/
-│   ├── Core/           GameManager, RunManager, EventBus, SceneLoader
-│   ├── Turn/           TurnManager, TurnStateMachine, phases, TorchTimer
-│   ├── Dice/           Dice, DiceSet, DiceRoller, roll events
-│   ├── Cards/          Card, CardEffect (base + subclasses), Deck/Hand/SpentPile
-│   ├── Grid/           GridMap, Tile, TileType, Pathfinder
-│   ├── Entities/       Player, Enemy, Health/Damage, EnemyAttackType, EnemyBodyType
-│   ├── Interaction/    DragDrop, TargetSelector, RangeHighlighter, PathPreview
-│   ├── UI/             HandView, DiceView, CardView, HUD, TorchView, tooltips
-│   └── Editor/         _Game.Editor.asmdef (editor tooling)
-├── Data/
-│   ├── Cards/          CardData assets
-│   ├── Dice/           DiceData assets
-│   ├── Enemies/        EnemyData assets
-│   └── Types/          CardTypeData assets
-├── Prefabs/
-├── Scenes/
-├── Art/  (Sprites, Animations, Materials)
-└── Audio/ (FMOD)
+Assets/
+├── _Game/
+│   ├── Scripts/
+│   │   ├── Core/           RunConfig, RunState, event bus, scene loading
+│   │   ├── Turn/           GameSession, TurnPhase, ActionResult, TorchTimer, LevelSnapshot
+│   │   ├── Dice/           Die, DiceSet, DiceData
+│   │   ├── Cards/          CardData, CardTypeData, CardInstance, Deck, Hand, SpentPile,
+│   │   │                   CardInfo, CardSelection, CardSelectionService,
+│   │   │                   CardSelectionAudio, PlaceholderCardSource
+│   │   ├── Grid/           GridMap, Tile, TileType, Pathfinder, MapData
+│   │   ├── Entities/       PlayerState, EnemyState, EnemyData
+│   │   ├── Interaction/    DragDrop, TargetSelector, RangeHighlighter, PathPreview
+│   │   ├── UI/             CardView, HandView, HandLayout, CardRevealView
+│   │   └── Editor/         _Game.Editor.asmdef (editor tooling)
+│   ├── Data/
+│   │   ├── Cards/          CardData assets
+│   │   ├── Dice/           DiceData assets
+│   │   ├── Enemies/        EnemyData assets
+│   │   └── Types/          CardTypeData assets
+│   ├── Prefabs/UI/         CardView.prefab
+│   └── Scenes/             game scenes (planned)
+├── Scenes/                 Cards_Dice_UI.unity, SoundDesign.unity, SampleScene.unity
+├── UI/Placeholders/        card, dice, and background images
+├── TextMesh Pro/           TMP essential resources
+├── Plugins/FMOD/           FMOD Unity plugin
+└── Art/, Audio/            sprites, animations, materials, audio
+
+FMOD/Test/                  FMOD Studio project and built Master bank
 ```
 
 Assemblies: `Scripts/_Game.Runtime.asmdef` (references Unity.InputSystem,
@@ -110,14 +120,15 @@ UnityEngine.UI, Unity.TextMeshPro, FMODUnity) and `Scripts/Editor/_Game.Editor.a
 ### EnemyData
 | Field | Type | Notes |
 |-------|------|-------|
-| attackType | enum | Melee (own tile) or Ranged (adjacent) |
+| attackType | enum | Melee (own tile) or Ranged (adjacent, 8-way) |
 | speedType | enum | Fast (attacks on entry) or Slow (attacks at next TurnStart) |
 | bodyType | enum | Normal, Tank, Flying |
 | maxHp | int | 1 normal/flying, 2 tank |
 | damage | int | always 1 |
 | sprite / animation | refs |
 
-Enemy range is derived: melee = own tile, ranged = adjacent. Attack timing is
+Enemy range is derived: melee = own tile, ranged = adjacent (Chebyshev 1; a
+diagonal counts as 1 range). Attack timing is
 derived from speed: fast attacks on entry, slow attacks at the start of the next
 turn if the player is still in range. Movement blocking is derived: ranged
 blocks, melee does not. `canBeJumpedOver` is true except for Flying;
@@ -141,6 +152,16 @@ blocks, melee does not. `canBeJumpedOver` is true except for Flying;
 | torchSeconds | float (the single torch duration source) |
 | packChoices, bonusChoices | typed choice tables |
 
+### CardInfo (presentation)
+| Field | Type | Notes |
+|-------|------|-------|
+| id | string | Stable selection id used by `CardSelection` |
+| artwork | Sprite | Finished card image shown by `CardView` |
+
+`CardInfo` is the UI view model. It is separate from `CardData`. A planned
+bridge maps `CardInstance.Id` and `CardData.art` to `CardInfo`; the gameplay
+model remains the source of truth.
+
 ---
 
 ## 5. Domain classes
@@ -156,18 +177,31 @@ SpentPile       — played and overflow cards; does not return this level
 Grid            — Tile[,]; occupancy; IsWalkable(coord); tile predicates
 Tile            — base TileType, sand overlay, enemy occupants, player occupant
 Pathfinder      — weighted BFS/Dijkstra; returns PathResult
-TurnStateMachine — states (see §7); exposes transitions & events
-CombatResolver  — apply damage/heal, handle death, check win/lose
+GameSession     — concrete turn loop; roll, play, draw, retry, win/lose
 TorchTimer      — real-time countdown; pauses with the menu; raises Burnout
-ICardEffect     — Execute(Command) → Result; implementations per effect type
+ICardEffect     — planned strategy interface; current code uses a switch
 PlayerState     — hp, position
 EnemyState      — hp, attackType, speedType, bodyType, position, telegraphTurn (slow)
 ```
 
-All domain objects are plain C#. `TurnManager` (a `MonoBehaviour` in the
-presentation layer) drives them and forwards input commands.
+All domain objects are plain C#. `GameSession` drives them; a thin
+`TurnManager` MonoBehaviour will forward input commands and presentation
+events.
 
-**PathResult** — `{ State: Safe | Damaging | Unreachable, Tiles: coord[], HpCost: int }`.
+**Presentation and UI classes (merged from MazenUI)**
+- `CardInfo` — view model: stable id + artwork.
+- `CardSelection` — offered/selected card lists; `CardSelected` and
+  `OfferChanged` events; plain C#.
+- `CardSelectionService` — scene access point; exposes `Selection`.
+- `CardView` — card image, hover, click; `HandView` — mirrors
+  `CardSelection.Offered`; `HandLayout` — fan math; `CardRevealView` — centered
+  reveal.
+- `CardSelectionAudio` — subscribes to `CardSelected` and plays an FMOD event.
+- These are presentation-only. They are not yet wired to `GameSession`; a
+  `HandPresenter` bridge is the next step.
+
+**PathResult** — `{ State: Safe | Damaging | Unreachable, Tiles: coord[], HpCost: int, Steps: int }`.
+`Steps` is the movement cost: a diagonal step costs 2, an orthogonal step costs 1.
 The pathfinder prefers a safe path within range. If none exists, it returns the
 lowest-HP damaging path within range. If neither exists, it returns
 `Unreachable`.
@@ -199,12 +233,15 @@ public interface ICardEffect {
 }
 ```
 
-One implementation per `CardEffectType`. `CardData` names the effect type and
-params; a factory instantiates the strategy. This avoids a giant switch and
-keeps each effect independently testable.
+The current implementation dispatches by `CardEffectType` inside
+`GameSession.ExecuteEffect`. The `ICardEffect` strategy interface shown above is
+the planned extraction; it is not implemented yet. The switch keeps the first
+version small; the strategy split is the next refactor if the effect count
+grows.
 
 Effect implementations:
-- `WalkEffect` — query `Pathfinder` for a `PathResult` within the rolled value;
+- `WalkEffect` — query `Pathfinder` for a `PathResult` within the rolled movement
+  budget (diagonal 2, orthogonal 1);
   move along the chosen path; apply `HpCost` damage. Damaging tiles and **fast**
   enemy range entries count toward `HpCost`. Slow enemies telegraph instead.
   Holes are not walkable.
@@ -246,8 +283,10 @@ Outside the turn machine:
 - **DeckExhausted** also retries the level.
 - **HP 0** ends the run.
 
-Transitions are validated by `TurnManager`; illegal drops are rejected without
-state change.
+Transitions are validated by `GameSession`; illegal drops are rejected without
+state change. The concrete implementation is `Scripts/Turn/GameSession.cs`.
+`TurnPhase`, `ActionResult`, `DamageSource`, and `EnemyAttackTiming` live in the
+same folder.
 
 ---
 
@@ -268,7 +307,7 @@ View flow for a card play:
 1. Player starts drag → `TargetSelector` asks `Pathfinder`/`Grid` for valid tiles.
 2. Valid tiles are highlighted green (safe), orange/red (damaging), or grey
    (unreachable) via `PathPreview`.
-3. Drop → `TurnManager.PlayCard(card, coord)` → validates → runs effect.
+3. Drop → `GameSession.PlayCard(card, coord)` → validates → runs effect.
 4. Simulation publishes events → views animate (DOTween) and update HUD.
 
 Enemy attack flow:
@@ -279,6 +318,15 @@ Enemy attack flow:
 4. If the player leaves range, the slow telegraph is cleared.
 5. A slow enemy attack repeats each `TurnStart` while the player stays.
 
+Card selection UI flow:
+1. `CardSelectionService.Selection` is the source of truth.
+2. `HandView` subscribes to `OfferChanged` and rebuilds `CardView`s.
+3. A card click calls `CardSelection.TrySelect`.
+4. `CardSelection.CardSelected` drives `CardRevealView.Play` and
+   `CardSelectionAudio` (FMOD).
+5. A planned `HandPresenter` will feed `CardSelection.SetOffer` from
+   `GameSession.PlayerHand` and route selection into `GameSession.PlayCard`.
+
 ---
 
 ## 9. Module responsibilities
@@ -288,11 +336,12 @@ Enemy attack flow:
 | Core | bootstrap, run lifecycle, scene loading, global config |
 | Turn | state machine, phase orchestration, turn flow, torch timer |
 | Dice | dice data, rolling, set management, roll events, rerolls |
-| Cards | card data, deck/hand/spent pile, effect strategies |
+| Cards | card data, deck/hand/spent pile, effect strategies, card view model and selection |
 | Grid | tile grid, terrain rules, occupancy, pathfinding |
 | Entities | player/enemy state, health/damage, attack/body types, contact and telegraph |
 | Interaction | drag & drop, target selection, range highlighting, path preview |
-| UI | hand/dice/card views, HUD, torch view, tooltips, animation triggers |
+| UI | card hand, card views, hand layout, reveal, HUD, TMP |
+| Audio | FMOD settings, Master bank, card-selection event adapter |
 
 ---
 
@@ -316,6 +365,12 @@ Enemy attack flow:
 - **Retry tests** — retry HP equals level-entry HP; opened treasure does not
   respawn; no duplicate claimed cards.
 - **Torch tests** — real-time tick, pause with menu, burnout retries the level.
+- **UI tests** — `Cards_Dice_UI.unity` smoke test: cards deal in, hover, select,
+  reveal; `HandView` service/prefab references are present.
+- **Audio tests** — `SoundDesign.unity` smoke test: `Master` bank loads; no
+  missing FMOD event; `CardSelectionAudio` is silent while unassigned.
+- **Integration tests** — planned bridge from `GameSession.PlayerHand` to
+  `CardSelection` and back into `PlayCard`.
 - **Editor tests** — validate ScriptableObject data (unique lucky numbers, valid
   params, valid enemy traits).
 - **PlayMode smoke tests** — boot scene, roll, play a Walk card, reach exit,
@@ -333,8 +388,23 @@ Enemy attack flow:
 - **DOTween has no `.asmdef`** — lives in `Assembly-CSharp-firstpass`; to use it
   from `_Game.Runtime`, add `DOTween.asmdef` (+ a `DOTween.Editor` asmdef) or
   keep tweening in a non-asmdef area.
-- **FMOD** — `FMODUnity.asmdef` references Addressables (not in manifest);
-  add the reference only when audio code is written and FMOD compiles cleanly.
+- **FMOD** — the SoundDesign branch is merged. `FMODStudioSettings.asset` points
+  to `FMOD/Test/Test.fspro` and `FMOD/Test/Build`, with `Master` as the master
+  bank. `FMODUnity.asmdef` still lists optional Addressables/Timeline references
+  that are not in the manifest; the project compiles because those code paths are
+  guarded by version defines. If a build reports missing references, add the
+  packages or remove the optional references.
+- **LFS** — banks, fonts, and placeholder images are Git LFS objects. Run
+  `git lfs fetch` before opening the merged scenes; pointer files break FMOD and
+  TMP.
+- **UI coupling** — `_Game.Runtime` now references `UnityEngine.UI`,
+  `Unity.TextMeshPro`, and `FMODUnity`. The simulation is still pure C#; the UI
+  and audio adapters sit in the same assembly. If the core must stay audio-free,
+  move `CardSelectionAudio` to a separate `_Game.Audio` assembly.
+- **UI integration** — the merged card UI is a standalone selection demo. It is
+  not yet wired to `GameSession`; a `HandPresenter` bridge is required.
+- **TMP** — the TMP essential resources are merged under `Assets/TextMesh Pro`.
+  Import time is significant. Avoid duplicate `TMP Settings.asset` copies.
 - **Determinism** — keep RNG (dice/deck shuffle) behind an interface so runs can
   be seeded for testing. The torch is real time and is not deterministic.
 - **Consumable deck tuning** — deck size, draw per die, and dice count must be
@@ -348,3 +418,21 @@ Enemy attack flow:
   removed. Opened treasure is consumed permanently; claimed cards are kept.
 - **Enemy speed** — fast enemies attack only on entry; slow enemies attack at
   `TurnStart` while the player stays. Tune the speed mix and the re-entry rule.
+
+---
+
+## 12. Merge integration status
+
+- `origin/SoundDesign` merged at `60a5897`.
+- `origin/MazenUI` merged at `868fa38`.
+- Backup branch: `pre-merge-backup`.
+- LFS objects fetched; `Master.bank` 121,888 bytes, `LiberationSans.ttf`
+  350,200 bytes, `Card_01.png` 312,553 bytes.
+- `_Game.Runtime.asmdef` references `UnityEngine.UI`, `Unity.TextMeshPro`, and
+  `FMODUnity`.
+- Scenes: `Assets/Scenes/Cards_Dice_UI.unity`,
+  `Assets/Scenes/SoundDesign.unity`, `Assets/Scenes/SampleScene.unity`.
+- FMOD Studio project: `FMOD/Test`.
+- Unity compiled (`Tundra build success`), with no `error CS` in the editor log.
+- Pending: UI ↔ `GameSession` bridge; FMOD card-select event assignment; runtime
+  scene verification; tests.

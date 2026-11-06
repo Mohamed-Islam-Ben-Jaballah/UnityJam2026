@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff0bf3c5b208c434380ea96905c24a7c, type: 3}
+  m_Name: QA_Level
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Grid.MapData
+  width: 8
+  height: 8
+  tiles: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000003000000030000000000000005000000020000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000006000000060000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000i
+  playerSpawn:
+    X: 0
+    Y: 0
+  exitPos:
+    X: 7
+    Y: 7
+  enemySpawns:
+  - data: {fileID: 11400000, guid: 03ca7a1d29e389148947b9151582bd24, type: 2}
+    coord:
+      X: 3
+      Y: 5
+  - data: {fileID: 11400000, guid: 2dceb4d759aa7eb4cabfd1c076826ab7, type: 2}
+    coord:
+      X: 6
+      Y: 5
+  - data: {fileID: 11400000, guid: d0c7a2c7b219faf45b7ca9fa8f952b70, type: 2}
+    coord:
+      X: 5
+      Y: 6
+  - data: {fileID: 11400000, guid: db63784cfc4201f4fbf50781246e877a, type: 2}
+    coord:
+      X: 2
+      Y: 6
+  treasureSpawns:
+  - coord:
+      X: 1
+      Y: 6
+    gold: 5
+    cards:
+    - {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  - coord:
+      X: 6
+      Y: 2
+    gold: 5
+    cards:
+    - {fileID: 11400000, guid: 5f030f62d64c26b49af55dbc5282e641, type: 2}
