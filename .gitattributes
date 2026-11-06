@@ -104,6 +104,7 @@ Packages/packages-lock.json linguist-generated
 *.mod                   lfs
 *.mp3                   lfs
 *.ogg                   lfs
+*.bank                  lfs
 *.s3m                   lfs
 *.wav                   lfs
 *.xm                    lfs
@@ -169,3 +170,7 @@ Packages/packages-lock.json linguist-generated
 
 # Exceptions for .asset files such as lightning pre-baking
 LightingData.asset     binary
+
+# FMOD: keep macOS bundle files with LF line endings
+Assets/Plugins/FMOD/**/*.bundle text eol=lf
+Assets/Plugins/FMOD/**/Info.plist text eol=lf
