@@ -112,3 +112,6 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Keep required Unity plugin binaries even if a machine-global *.dll ignore is set
+!/Assets/Plugins/**/*.dll
