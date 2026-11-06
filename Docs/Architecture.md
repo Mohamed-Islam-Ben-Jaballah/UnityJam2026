@@ -71,7 +71,7 @@ Assets/_Game/
 ```
 
 Assemblies: `Scripts/_Game.Runtime.asmdef` (references Unity.InputSystem,
-Unity.ugui) and `Scripts/Editor/_Game.Editor.asmdef` (references
+UnityEngine.UI, Unity.TextMeshPro, FMODUnity) and `Scripts/Editor/_Game.Editor.asmdef` (references
 `_Game.Runtime`, Editor-only).
 
 ---
