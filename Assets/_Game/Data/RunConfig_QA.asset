@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e60f8e30aedb4e419fa60e125074921, type: 3}
+  m_Name: RunConfig_QA
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Core.RunConfig
+  startingDeck:
+  - {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  - {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  - {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  - {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  - {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  - {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  - {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  - {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  - {fileID: 11400000, guid: de2c2d8eb61f2b34b9883f5270808f14, type: 2}
+  - {fileID: 11400000, guid: de2c2d8eb61f2b34b9883f5270808f14, type: 2}
+  - {fileID: 11400000, guid: bbf17d9a44befea429b3b00e60bb96d6, type: 2}
+  - {fileID: 11400000, guid: bbf17d9a44befea429b3b00e60bb96d6, type: 2}
+  - {fileID: 11400000, guid: 5f030f62d64c26b49af55dbc5282e641, type: 2}
+  - {fileID: 11400000, guid: 5f030f62d64c26b49af55dbc5282e641, type: 2}
+  startingDice:
+  - {fileID: 11400000, guid: db9a00af0feafa4459fe32ab06a78160, type: 2}
+  maxHp: 6
+  handSize: 5
+  handCap: 8
+  torchSeconds: 240
