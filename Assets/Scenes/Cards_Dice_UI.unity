@@ -526,6 +526,124 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 609966917}
   m_CullTransparentMesh: 1
+--- !u!1 &653120551
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 653120553}
+  - component: {fileID: 653120555}
+  - component: {fileID: 653120554}
+  - component: {fileID: 653120552}
+  m_Layer: 5
+  m_Name: Dice
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &653120552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653120551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e38e2d1c42956de4cba24e2c46a02426, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.UI.DiceView
+  dieGraphic: {fileID: 2040182751}
+  faceSets:
+  - sides: 4
+    faces:
+    - {fileID: 21300000, guid: 17143636e27a4f74ca631cd1db6b95ed, type: 3}
+    - {fileID: 21300000, guid: 2c13ed91c8878414cb8b901c932b22f0, type: 3}
+    - {fileID: 21300000, guid: f28e7074a20889f4887fa7aab55691b4, type: 3}
+    - {fileID: 21300000, guid: 80022395145613b4783a55fcf2602598, type: 3}
+  - sides: 6
+    faces:
+    - {fileID: 21300000, guid: 1d63834cfd154f54282f501281de6ba8, type: 3}
+    - {fileID: 21300000, guid: 6b2137e783fd6914ebb8047e20bed25b, type: 3}
+    - {fileID: 21300000, guid: 11f95047919f9fa46bb71cb2eb522d52, type: 3}
+    - {fileID: 21300000, guid: c301f42747d797b4c9aacb17596fc37e, type: 3}
+    - {fileID: 21300000, guid: 68aca388bbca442459958a7c836af6c3, type: 3}
+    - {fileID: 21300000, guid: 5599037892f60ea4f9f07e6ef5e6722e, type: 3}
+  - sides: 8
+    faces:
+    - {fileID: 21300000, guid: bd8bbd4419332fc44bf99393ece71be9, type: 3}
+    - {fileID: 21300000, guid: 9301c7b5826aef14c9f026cb8d58efaa, type: 3}
+    - {fileID: 21300000, guid: 908d88bc0fc123546bf567839f86fbe4, type: 3}
+    - {fileID: 21300000, guid: 9005bb73c5af8aa49b186d6d8456d515, type: 3}
+    - {fileID: 21300000, guid: 7f64b4d5be9a19e4f84db6c0f98a98bd, type: 3}
+    - {fileID: 21300000, guid: 34373907f8da17e4c935c8677b5103a2, type: 3}
+    - {fileID: 21300000, guid: 19b4241d453cf904ebb64cead4415bd0, type: 3}
+    - {fileID: 21300000, guid: f489c19610dff1f4ea807bda0c7a1b08, type: 3}
+  rollDuration: 0.7
+  spinSpeed: 900
+  faceFlickerInterval: 0.06
+--- !u!224 &653120553
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653120551}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2040182750}
+  m_Father: {fileID: 2099146650}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 40, y: 40}
+  m_SizeDelta: {x: 170, y: 170}
+  m_Pivot: {x: 0, y: 0}
+--- !u!114 &653120554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653120551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &653120555
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653120551}
+  m_CullTransparentMesh: 1
 --- !u!1 &707137417
 GameObject:
   m_ObjectHideFlags: 0
@@ -682,6 +800,8 @@ GameObject:
   - component: {fileID: 2028290167}
   - component: {fileID: 2028290166}
   - component: {fileID: 2028290165}
+  - component: {fileID: 2028290169}
+  - component: {fileID: 2028290170}
   m_Layer: 0
   m_Name: CardSystems
   m_TagString: Untagged
@@ -759,6 +879,34 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2028290169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2028290164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c376b95c9567d91419a364c9b652eae1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.DiceSystem.PlaceholderDiceRoller
+  view: {fileID: 653120552}
+  die: {fileID: 11400000, guid: 9c31bec4a488c1347a3ec0433834530d, type: 2}
+--- !u!114 &2028290170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2028290164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f607e0f1ab1de3e418a582d58a825ab8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.DiceSelectionGate
+  service: {fileID: 2028290167}
+  dice: {fileID: 653120552}
 --- !u!1 &2040182749
 GameObject:
   m_ObjectHideFlags: 0
@@ -771,7 +919,7 @@ GameObject:
   - component: {fileID: 2040182752}
   - component: {fileID: 2040182751}
   m_Layer: 5
-  m_Name: Dice
+  m_Name: Graphic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -789,13 +937,13 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2099146650}
+  m_Father: {fileID: 653120553}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 40, y: 40}
-  m_SizeDelta: {x: 170, y: 170}
-  m_Pivot: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 160, y: 160}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2040182751
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -816,7 +964,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 751f83362d008c34a8a30b0732f1e235, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5599037892f60ea4f9f07e6ef5e6722e, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -930,7 +1078,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 609966918}
-  - {fileID: 2040182750}
+  - {fileID: 653120553}
   - {fileID: 369329861}
   - {fileID: 2022875783}
   m_Father: {fileID: 0}

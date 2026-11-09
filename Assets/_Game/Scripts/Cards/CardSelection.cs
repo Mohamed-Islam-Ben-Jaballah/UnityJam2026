@@ -28,6 +28,12 @@ namespace DiceDrive.Cards
         public bool IsSelected(string cardId) => cardId != null && selectedIds.Contains(cardId);
 
         /// <summary>
+        /// When false, <see cref="TrySelect"/> refuses every pick (e.g. until the die has landed).
+        /// The offer stays visible; only selecting is blocked.
+        /// </summary>
+        public bool SelectionEnabled { get; set; } = true;
+
+        /// <summary>
         /// Replaces the offered cards with any number of cards. Cards already selected and
         /// duplicate ids are skipped, so a card can never be offered (or picked) twice.
         /// </summary>
@@ -50,11 +56,12 @@ namespace DiceDrive.Cards
         }
 
         /// <summary>
-        /// Picks an offered card by id. Returns false if it is not offered or was already picked.
+        /// Picks an offered card by id. Returns false if selection is disabled, or the card is not
+        /// offered or was already picked.
         /// </summary>
         public bool TrySelect(string cardId)
         {
-            if (cardId == null || selectedIds.Contains(cardId)) return false;
+            if (!SelectionEnabled || cardId == null || selectedIds.Contains(cardId)) return false;
 
             int index = offered.FindIndex(c => c.Id == cardId);
             if (index < 0) return false;
