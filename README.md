@@ -31,10 +31,11 @@ reaches 0, the **run ends**.
 
 ### Step 1 — Roll the dice
 
-You start with one die and add more on some levels. Roll them **one at a time**.
+You start with one d6 and add more d6s on some maps. Roll them **one at a time**.
 Each die gives one card play. If no card in hand can be played, you must reroll:
-the first reroll of the turn is free, later rerolls cost 1 HP, and a paid reroll
-at 1 HP kills.
+you have one free reroll per map; after that, paid rerolls cost 1 HP starting on
+map 2, and a paid reroll at 1 HP kills. On the first map, if no card is playable
+after the free reroll, the die is skipped.
 
 <!-- SCREENSHOT: the dice rolling / dice UI -->
 
@@ -79,24 +80,21 @@ Normal cards are **always** playable. Every other class answers to a single
 
 | Roll | Awakens |
 |------|---------|
-| 1    | Angel |
-| 2    | Normal only |
-| 3    | Elf |
+| 1    | Loneliness special effects |
+| 2    | Elvish (Union) |
+| 3    | Normal only |
 | 4    | Normal only |
-| 5    | Desert |
-| 6    | Devil |
-| 7    | Normal only |
-| 8    | China |
+| 5    | Devilish (Desire) |
+| 6    | Sinitic (Fortune and wealth) |
 
-- **Normal** — your faithful Walk; move up to the rolled value.
-- **Elf (3)** — Leapol (jump), Squimi (damage), Heilin (heal).
-- **Devil (6)** — Qa'faz (jump), Sara'akh (damage), Ha'yen (remove obstacle).
-- **China (8)** — Maoyi (jump), Sunhai (damage), Qiahni (draw 2 cards).
-- **Angel (1)** — Seraphil (deal damage in a cross around you).
-- **Desert (5)** — Zulfar (flood the 8 tiles around you with sand).
+- **Normal** — Walk; move up to the rolled value (diagonal 2, orthogonal 1).
+- **Elvish (2)** — Leapol (jump), Squimi (damage), Heilin (heal), MelowCart (tree-root flood).
+- **Devilish (5)** — Qa'faz (jump), Sara'akh (damage), Ha'yen (remove obstacle).
+- **Sinitic (6)** — Maoyi (jump), Sunhai (damage), Qiahni (draw 2 cards).
+- **Loneliness (1)** — Cale Azrael (fire inverted cross); not a family.
 
-> Type decides **when** a card can be played, not what it does. Add dice on some
-> levels to reach higher lucky numbers.
+> Type decides **when** a card can be played, not what it does. Extra d6s add
+> card plays per turn.
 
 ---
 

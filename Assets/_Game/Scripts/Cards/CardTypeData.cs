@@ -5,11 +5,10 @@ namespace DiceDrive.Cards
     public enum CardTypeId
     {
         Normal,
-        Elf,
-        Devil,
-        China,
-        Angel,
-        Desert
+        Elvish,
+        Devilish,
+        Sinitic,
+        Loneliness
     }
 
     [CreateAssetMenu(menuName = "Dice-Drive/Card Type", fileName = "CardType")]

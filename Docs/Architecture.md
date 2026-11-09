@@ -97,7 +97,7 @@ UnityEngine.UI, Unity.TextMeshPro, FMODUnity) and `Scripts/Editor/_Game.Editor.a
 ### CardTypeData
 | Field | Type | Notes |
 |-------|------|-------|
-| typeId | enum | Normal, Elf, Devil, China, Angel, Desert |
+| typeId | enum | Normal, Elvish, Devilish, Sinitic, Loneliness |
 | luckyNumber | int | 0 for Normal (always playable) |
 | displayName / icon | string / sprite | UI |
 
@@ -115,7 +115,7 @@ UnityEngine.UI, Unity.TextMeshPro, FMODUnity) and `Scripts/Editor/_Game.Editor.a
 ### DiceData
 | Field | Type |
 |-------|------|
-| sides | int (4/6/8) |
+| sides | int (6) |
 
 ### EnemyData
 | Field | Type | Notes |
@@ -149,6 +149,7 @@ blocks, melee does not. `canBeJumpedOver` is true except for Flying;
 | startingDeck | CardData[] |
 | startingDice | DiceData[] |
 | maxHp, handSize, handCap | int |
+| freeRerollsPerMap | int (default 1) |
 | torchSeconds | float (the single torch duration source) |
 | packChoices, bonusChoices | typed choice tables |
 
@@ -177,7 +178,7 @@ SpentPile       — played and overflow cards; does not return this level
 Grid            — Tile[,]; occupancy; IsWalkable(coord); tile predicates
 Tile            — base TileType, sand overlay, enemy occupants, player occupant
 Pathfinder      — weighted BFS/Dijkstra; returns PathResult
-GameSession     — concrete turn loop; roll, play, draw, retry, win/lose
+GameSession     — concrete turn loop; roll, play, draw, retry, free-reroll budget
 TorchTimer      — real-time countdown; pauses with the menu; raises Burnout
 ICardEffect     — planned strategy interface; current code uses a switch
 PlayerState     — hp, position
@@ -256,8 +257,7 @@ Effect implementations:
   walls and holes are unaffected.
 - `DrawEffect` — draw N cards; hand cap and spent-pile rules apply.
 - `CrossDamageEffect` — damage in a + shape centered on the player.
-- `FloodEffect` — convert 8 neighbors to sand: fill holes, cover damaging tiles,
-  damage enemies. Walls unaffected; flying enemies ignore sand.
+- `FloodEffect` — convert 8 neighbors to sand (MelowCart tree roots): fill holes, cover damaging tiles, damage enemies. Walls unaffected; flying enemies ignore sand.
 
 ---
 
@@ -269,8 +269,10 @@ States:
 2. **RollDie** — roll the next die; publish `RollEvent(number)`.
 3. **ChooseCard** — highlight playable cards. If a playable card exists, the
    player must play one. If none exists, go to **Reroll**.
-4. **Reroll** — first reroll of the turn is free; later rerolls cost 1 HP. A
-   paid reroll at 1 HP kills the player. After a reroll, return to ChooseCard.
+4. **Reroll** — one free reroll per map, reset at map entry and level reset.
+   After it, paid rerolls cost 1 HP and unlock on map 2. A paid reroll at 1 HP
+   kills the player. On map 1, an unplayable die is skipped. After a reroll,
+   return to ChooseCard.
 5. **ResolveCard** — execute the effect; check win/lose.
 6. **NextDieOrEndTurn** — if dice remain, go to RollDie; otherwise end the turn.
 7. **DrawPhase** — draw 1 card per die rolled. Kill draws happen immediately
@@ -355,8 +357,9 @@ Card selection UI flow:
   holes and non-flying enemies; walls and flying enemies block.
 - **Deck tests** — cards are consumable; deck exhaustion raises `DeckExhausted`;
   hand overflow discards the oldest; no reshuffle.
-- **Reroll tests** — one free reroll; paid rerolls cost 1 HP; paid reroll at 1 HP
-  kills; reroll only when no playable card.
+- **Reroll tests** — one free reroll per map; reset on map entry and retry; paid
+  rerolls unlock on map 2 and cost 1 HP; paid reroll at 1 HP kills; reroll only
+  when no playable card.
 - **Enemy tests** — fast attack on entry; slow attack at next `TurnStart`;
   leaving range cancels; staying in range attacks every turn; tank/flying
   traits; layered occupancy; fast enemy re-entry.

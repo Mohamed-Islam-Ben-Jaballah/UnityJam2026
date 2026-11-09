@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1553af21802cd046b08013e0d03fba1, type: 3}
-  m_Name: Seraphil
+  m_Name: CaleAzrael
   m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.CardData
-  cardName: Seraphil
+  cardName: Cale Azrael
   cardType: {fileID: 11400000, guid: 9fb448c311110ab40b621ac441f3e0bf, type: 2}
   effect: 6
   rangeType: 0
@@ -22,4 +22,4 @@ MonoBehaviour:
   drawCount: 0
   jumpDistance: 0
   art: {fileID: 0}
-  description: Deal 1 damage in a cross centered on the player.
+  description: Fire inverted cross. Deal 1 damage in a + pattern centered on the player.

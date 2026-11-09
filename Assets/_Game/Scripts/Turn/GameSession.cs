@@ -32,7 +32,8 @@ namespace DiceDrive.Turn
         private int _nextEnemyId = 1;
         private int _entryHp;
         private int _diceRolledThisTurn;
-        private bool _freeRerollAvailable;
+        private int _freeRerollsRemaining;
+        private int _levelNumber = 1;
         private bool _levelComplete;
         private bool _runOver;
         private bool _retryInProgress;
@@ -48,7 +49,9 @@ namespace DiceDrive.Turn
         public TurnPhase Phase { get; private set; }
         public int TurnNumber => _turnNumber;
         public int CurrentRoll => _currentRoll;
-        public bool FreeRerollAvailable => _freeRerollAvailable;
+        public int FreeRerollsRemaining => _freeRerollsRemaining;
+        public int LevelNumber => _levelNumber;
+        public bool CanPaidReroll => _levelNumber >= 2;
         public int Gold { get; private set; }
         public bool IsLevelComplete => _levelComplete;
         public bool IsRunOver => _runOver;
@@ -75,13 +78,15 @@ namespace DiceDrive.Turn
             _random = random ?? throw new ArgumentNullException(nameof(random));
         }
 
-        public void StartLevel(int? startingHp = null)
+        public void StartLevel(int? startingHp = null, int levelNumber = 1)
         {
             if (Phase != TurnPhase.NotStarted)
             {
                 return;
             }
 
+            _levelNumber = Math.Max(1, levelNumber);
+            _freeRerollsRemaining = Math.Max(0, _config.freeRerollsPerMap);
             _entryHp = startingHp ?? _config.maxHp;
             _player = new PlayerState
             {
@@ -104,7 +109,6 @@ namespace DiceDrive.Turn
             _retryInProgress = false;
             _turnNumber = 0;
             _currentRoll = 0;
-            _freeRerollAvailable = true;
             _diceRolledThisTurn = 0;
             Gold = 0;
 
@@ -240,8 +244,17 @@ namespace DiceDrive.Turn
                 return ActionResult.Fail(ActionStatus.CannotReroll, "A playable card exists.");
             }
 
-            if (!_freeRerollAvailable)
+            if (_freeRerollsRemaining > 0)
             {
+                _freeRerollsRemaining--;
+            }
+            else
+            {
+                if (_levelNumber < 2)
+                {
+                    return SkipCurrentDie();
+                }
+
                 if (_player.Hp <= 1)
                 {
                     DamagePlayer(1, DamageSource.Reroll);
@@ -251,9 +264,23 @@ namespace DiceDrive.Turn
                 DamagePlayer(1, DamageSource.Reroll);
             }
 
-            _freeRerollAvailable = false;
             _currentRoll = _dice.RollCurrent(_random);
             DiceRolled?.Invoke(_currentRoll);
+            return ActionResult.Ok();
+        }
+
+        private ActionResult SkipCurrentDie()
+        {
+            if (_dice.Advance())
+            {
+                Phase = TurnPhase.AwaitingRoll;
+                PhaseChanged?.Invoke(Phase);
+            }
+            else
+            {
+                EndTurn();
+            }
+
             return ActionResult.Ok();
         }
 
@@ -374,7 +401,6 @@ namespace DiceDrive.Turn
             _dice.BeginTurn();
             _currentRoll = 0;
             _diceRolledThisTurn = 0;
-            _freeRerollAvailable = true;
             Phase = TurnPhase.AwaitingRoll;
             PhaseChanged?.Invoke(Phase);
         }
@@ -1162,7 +1188,7 @@ namespace DiceDrive.Turn
             _dice = CreateDiceSet();
             _turnNumber = 0;
             _currentRoll = 0;
-            _freeRerollAvailable = true;
+            _freeRerollsRemaining = Math.Max(0, _config.freeRerollsPerMap);
             _diceRolledThisTurn = 0;
             _levelComplete = false;
 

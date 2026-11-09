@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
+using TMPro;
 
 namespace DiceDrive.QA
 {
@@ -19,19 +20,21 @@ namespace DiceDrive.QA
         public int seed = 12345;
         public float tileSize = 1f;
         public float dragLineStartOffset = 24f;
+        public int levelNumber = 1;
 
         private GameSession _session;
         private Camera _camera;
         private Transform _worldRoot;
         private Canvas _canvas;
-        private Text _statusText;
-        private Text _messageText;
-        private Text _diceText;
+        private TextMeshProUGUI _statusText;
+        private TextMeshProUGUI _messageText;
+        private TextMeshProUGUI _diceText;
         private Button _rollButton;
         private Button _rerollButton;
         private Button _restartButton;
         private RectTransform _handPanel;
         private Font _font;
+        private TMP_FontAsset _tmpFont;
         private QaTargetingController _targeting;
         private readonly List<GameObject> _cardObjects = new List<GameObject>();
 
@@ -48,6 +51,7 @@ namespace DiceDrive.QA
             }
 
             _font = LoadFont();
+            _tmpFont = LoadTmpFont();
             CreateCamera();
             _worldRoot = new GameObject("World").transform;
             _worldRoot.SetParent(transform, false);
@@ -75,7 +79,7 @@ namespace DiceDrive.QA
             Unsubscribe();
             _session = new GameSession(runConfig, mapData, new System.Random(seed));
             Subscribe();
-            _session.StartLevel();
+            _session.StartLevel(null, levelNumber);
             _targeting?.SetSession(_session);
             RefreshAll();
         }
@@ -328,7 +332,7 @@ namespace DiceDrive.QA
                 layout.preferredWidth = 150f;
                 layout.preferredHeight = 90f;
 
-                var label = CreateText(go.transform, "Label", string.Empty, 16, TextAnchor.MiddleCenter, Color.white);
+                var label = CreateText(go.transform, "Label", string.Empty, 22, TextAlignmentOptions.Center, Color.white);
                 var rect = label.rectTransform;
                 rect.anchorMin = Vector2.zero;
                 rect.anchorMax = Vector2.one;
@@ -346,7 +350,7 @@ namespace DiceDrive.QA
             if (_diceText != null && _session != null)
             {
                 _diceText.text =
-                    $"Dice: {_session.Dice.Count}   Roll: {_session.CurrentRoll}   Free reroll: {_session.FreeRerollAvailable}\n" +
+                    $"Dice: {_session.Dice.Count}   Roll: {_session.CurrentRoll}   Free rerolls: {_session.FreeRerollsRemaining}\n" +
                     $"Hand: {_session.PlayerHand.Count}/{_session.PlayerHand.Cap}   Deck: {_session.DrawPile.Count}";
             }
 
@@ -370,7 +374,7 @@ namespace DiceDrive.QA
                 var torch = _session.Torch != null ? _session.Torch.Remaining : 0f;
                 _statusText.text =
                     $"HP {_session.Player.Hp}/{_session.Player.MaxHp}   Gold {_session.Gold}   Turn {_session.TurnNumber}   " +
-                    $"Phase {_session.Phase}   Torch {torch:0.0}s";
+                    $"Level {_session.LevelNumber}   Phase {_session.Phase}   Torch {torch:0.0}s";
             }
 
             if (_messageText == null)
@@ -472,7 +476,7 @@ namespace DiceDrive.QA
                 eventSystem.AddComponent<InputSystemUIInputModule>();
             }
 
-            _statusText = CreateText(canvasGo.transform, "Status", string.Empty, 20, TextAnchor.UpperLeft, Color.white);
+            _statusText = CreateText(canvasGo.transform, "Status", string.Empty, 24, TextAlignmentOptions.TopLeft, Color.white);
             var statusRect = _statusText.rectTransform;
             statusRect.anchorMin = new Vector2(0f, 1f);
             statusRect.anchorMax = new Vector2(1f, 1f);
@@ -480,7 +484,7 @@ namespace DiceDrive.QA
             statusRect.anchoredPosition = new Vector2(16f, -16f);
             statusRect.sizeDelta = new Vector2(-32f, 80f);
 
-            _messageText = CreateText(canvasGo.transform, "Message", string.Empty, 48, TextAnchor.MiddleCenter, new Color(1f, 0.9f, 0.3f));
+            _messageText = CreateText(canvasGo.transform, "Message", string.Empty, 56, TextAlignmentOptions.Center, new Color(1f, 0.9f, 0.3f));
             var messageRect = _messageText.rectTransform;
             messageRect.anchorMin = new Vector2(0.5f, 0.5f);
             messageRect.anchorMax = new Vector2(0.5f, 0.5f);
@@ -528,9 +532,9 @@ namespace DiceDrive.QA
             diceLayout.childForceExpandWidth = true;
             diceLayout.childForceExpandHeight = false;
 
-            _diceText = CreateText(dice.transform, "Dice Text", string.Empty, 16, TextAnchor.UpperLeft, Color.white);
+            _diceText = CreateText(dice.transform, "Dice Text", string.Empty, 20, TextAlignmentOptions.TopLeft, Color.white);
             var diceTextLayout = _diceText.gameObject.AddComponent<LayoutElement>();
-            diceTextLayout.preferredHeight = 42f;
+            diceTextLayout.preferredHeight = 56f;
 
             _rollButton = CreateButton(dice.transform, "Roll Die", () =>
             {
@@ -539,7 +543,7 @@ namespace DiceDrive.QA
                 RefreshHand();
             });
 
-            _rerollButton = CreateButton(dice.transform, "Reroll", () =>
+            _rerollButton = CreateButton(dice.transform, "Reroll / Skip", () =>
             {
                 _session?.Reroll();
                 RefreshDice();
@@ -549,19 +553,21 @@ namespace DiceDrive.QA
             _restartButton = CreateButton(dice.transform, "Restart QA", CreateSession);
         }
 
-        private Text CreateText(Transform parent, string name, string content, int size, TextAnchor anchor, Color color)
+        private TextMeshProUGUI CreateText(Transform parent, string name, string content, int size, TextAlignmentOptions alignment, Color color)
         {
             var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            var text = go.AddComponent<Text>();
-            text.font = _font;
+            var text = go.AddComponent<TextMeshProUGUI>();
+            if (_tmpFont != null)
+            {
+                text.font = _tmpFont;
+            }
+
             text.text = content;
             text.fontSize = size;
-            text.alignment = anchor;
+            text.alignment = alignment;
             text.color = color;
             text.raycastTarget = false;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Truncate;
             return text;
         }
 
@@ -580,7 +586,7 @@ namespace DiceDrive.QA
             var layout = go.AddComponent<LayoutElement>();
             layout.preferredHeight = 32f;
 
-            var text = CreateText(go.transform, "Label", label, 18, TextAnchor.MiddleCenter, Color.white);
+            var text = CreateText(go.transform, "Label", label, 22, TextAlignmentOptions.Center, Color.white);
             var rect = text.rectTransform;
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
@@ -674,6 +680,17 @@ namespace DiceDrive.QA
             if (font == null)
             {
                 font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            }
+
+            return font;
+        }
+
+        private static TMP_FontAsset LoadTmpFont()
+        {
+            var font = TMP_Settings.defaultFontAsset;
+            if (font == null)
+            {
+                font = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
             }
 
             return font;

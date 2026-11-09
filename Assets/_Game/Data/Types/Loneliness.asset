@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 85593af865f8c2846879593990f749d5, type: 3}
-  m_Name: Devil
+  m_Name: Loneliness
   m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.CardTypeData
-  typeId: 2
-  luckyNumber: 6
-  displayName: Devil
+  typeId: 4
+  luckyNumber: 1
+  displayName: Loneliness
   icon: {fileID: 0}

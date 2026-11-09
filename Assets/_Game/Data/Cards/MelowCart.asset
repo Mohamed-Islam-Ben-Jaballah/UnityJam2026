@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1553af21802cd046b08013e0d03fba1, type: 3}
-  m_Name: Zulfar
+  m_Name: MelowCart
   m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.CardData
-  cardName: Zulfar
-  cardType: {fileID: 11400000, guid: d7e40a3fc6da53a4a84ec7faf2c0c091, type: 2}
+  cardName: MelowCart
+  cardType: {fileID: 11400000, guid: e4ebc8a5e1153a04bad79bddd291250e, type: 2}
   effect: 7
   rangeType: 0
   rangeValue: 0
@@ -22,4 +22,4 @@ MonoBehaviour:
   drawCount: 0
   jumpDistance: 0
   art: {fileID: 0}
-  description: Flood the 8 neighbors with sand and damage enemies.
+  description: Spread tree roots across the 8 neighbors, filling holes, covering damaging tiles, and damaging enemies. Flying enemies ignore the roots.
