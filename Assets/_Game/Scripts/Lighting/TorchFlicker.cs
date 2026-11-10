@@ -17,6 +17,9 @@ namespace DiceDrive.Lighting
         [SerializeField, Range(0f, 1f)] private float radiusJitter = 0.08f;
         [SerializeField, Min(0f)] private float speed = 6f;
 
+        [Tooltip("Optional glow VFX whose brightness follows the light's flicker.")]
+        [SerializeField] private DiceDrive.Board.AmbientVfxLayer halo;
+
         [Header("Flame sprite (optional)")]
         [SerializeField] private SpriteRenderer flameRenderer;
         [SerializeField] private Sprite[] frames;
@@ -50,6 +53,13 @@ namespace DiceDrive.Lighting
                 var k = (n - 0.5f) * 2f;
                 light2D.intensity = baseIntensity * (1f + k * intensityJitter);
                 light2D.pointLightOuterRadius = _baseRadius * (1f + k * radiusJitter);
+            }
+
+            if (halo != null)
+            {
+                // Same noise as the light, slightly exaggerated so the glow visibly breathes.
+                var n = Mathf.PerlinNoise(t * 0.35f, _seed) * 0.7f + Mathf.PerlinNoise(t, _seed + 7f) * 0.3f;
+                halo.Intensity = 1f + (n - 0.5f) * 2f * intensityJitter * 1.5f;
             }
 
             if (flameRenderer != null && frames != null && frames.Length > 0)
