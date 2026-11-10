@@ -23,9 +23,13 @@ namespace DiceDrive.UI
 
         [SerializeField] private Image dieGraphic;
         [SerializeField] private FaceSet[] faceSets;
-        [SerializeField] private float rollDuration = 0.7f;
+        [SerializeField] private float rollDuration = 3f;
         [SerializeField] private float spinSpeed = 900f;
-        [SerializeField] private float faceFlickerInterval = 0.06f;
+        [Tooltip("Seconds between face changes at the start of the roll (fast).")]
+        [UnityEngine.Serialization.FormerlySerializedAs("faceFlickerInterval")]
+        [SerializeField] private float fastFaceInterval = 0.04f;
+        [Tooltip("Seconds between face changes at the end of the roll (slow). The gap grows steadily from fast to slow.")]
+        [SerializeField] private float slowFaceInterval = 0.45f;
 
         /// <summary>Raised when the player clicks the die while it is idle.</summary>
         public event Action RollRequested;
@@ -84,24 +88,39 @@ namespace DiceDrive.UI
         {
             var graphic = dieGraphic.rectTransform;
             float flicker = 0f;
+            int face = Array.IndexOf(faces, dieGraphic.sprite);
+
+            // Whole turns, so the spin ends exactly upright instead of snapping at the end.
+            float totalSpin = Mathf.Max(1f, Mathf.Round(spinSpeed * rollDuration * 0.5f / 360f)) * 360f;
 
             for (float t = 0f; t < rollDuration; t += Time.unscaledDeltaTime)
             {
                 float progress = t / rollDuration;
-                float speed = spinSpeed * (1f - progress); // slows down as it settles
-                graphic.Rotate(0f, 0f, -speed * Time.unscaledDeltaTime);
+                float eased = 1f - (1f - progress) * (1f - progress); // fast start, slows to a stop
+                graphic.localRotation = Quaternion.Euler(0f, 0f, -totalSpin * eased);
                 graphic.localScale = Vector3.one * (1f + 0.15f * Mathf.Sin(progress * Mathf.PI));
 
+                // The gap between face changes grows steadily: very fast first, slow at the end.
                 flicker -= Time.unscaledDeltaTime;
                 if (flicker <= 0f)
                 {
-                    dieGraphic.sprite = faces[UnityEngine.Random.Range(0, faces.Length)];
-                    flicker = faceFlickerInterval;
+                    face = NextFace(face, faces.Length);
+                    dieGraphic.sprite = faces[face];
+                    flicker = Mathf.Lerp(fastFaceInterval, slowFaceInterval, progress);
                 }
                 yield return null;
             }
 
             Land();
+        }
+
+        // A different face every time, so each change is visible even when it's slow.
+        private static int NextFace(int current, int count)
+        {
+            if (count < 2) return 0;
+            if (current < 0) return UnityEngine.Random.Range(0, count);
+            int next = UnityEngine.Random.Range(0, count - 1);
+            return next >= current ? next + 1 : next;
         }
 
         private void Land()

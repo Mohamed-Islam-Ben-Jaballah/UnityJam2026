@@ -17,6 +17,14 @@ namespace DiceDrive.UI
         [SerializeField] private RectTransform cardContainer;
         [Tooltip("Presents the selected card. If empty, the selected card just fades out.")]
         [SerializeField] private CardRevealView reveal;
+        [Header("Dealing")]
+        [Tooltip("Deck pile new cards are dealt from. If empty, cards slide up from below instead.")]
+        [SerializeField] private RectTransform deck;
+        [Tooltip("Card back shown while a card flies from the deck, before it flips.")]
+        [SerializeField] private Sprite cardBack;
+        [Tooltip("Seconds between one card leaving the deck and the next.")]
+        [SerializeField] private float dealInterval = 0.15f;
+        [Tooltip("Used only when no deck is set.")]
         [SerializeField] private float dealInDistance = 500f;
         [SerializeField] private HandLayout layout = new();
 
@@ -74,17 +82,30 @@ namespace DiceDrive.UI
             }
 
             ApplyLayout();
-
-            foreach (var view in created)
-            {
-                view.JumpTo(DealInStart(view));
-            }
+            Deal(created);
         }
 
-        private Vector2 DealInStart(CardView view)
+        /// <summary>New cards leave the deck one after another, face-down, and flip on landing.</summary>
+        private void Deal(List<CardView> created)
         {
-            layout.GetSlot(views.IndexOf(view), views.Count, -1, out var position, out _);
-            return position + Vector2.down * dealInDistance;
+            if (deck == null)
+            {
+                foreach (var view in created)
+                {
+                    layout.GetSlot(views.IndexOf(view), views.Count, -1, out var slot, out _);
+                    view.JumpTo(slot + Vector2.down * dealInDistance);
+                }
+                return;
+            }
+
+            // Cards sit centered in the container, so its local space is their anchored space.
+            Vector2 origin = cardContainer.InverseTransformPoint(deck.position);
+            for (int i = 0; i < created.Count; i++)
+            {
+                var view = created[i];
+                float startScale = deck.rect.width / ((RectTransform)view.transform).rect.width;
+                view.Deal(origin, startScale, i * dealInterval, cardBack);
+            }
         }
 
         private void ApplyLayout()
