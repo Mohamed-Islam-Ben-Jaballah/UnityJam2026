@@ -115,7 +115,7 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 34373907f8da17e4c935c8677b5103a2, type: 3}
     - {fileID: 21300000, guid: 19b4241d453cf904ebb64cead4415bd0, type: 3}
     - {fileID: 21300000, guid: f489c19610dff1f4ea807bda0c7a1b08, type: 3}
-  rollDuration: 3
+  rollDuration: 2.9
   spinSpeed: 900
   fastFaceInterval: 0.04
   slowFaceInterval: 0.45
@@ -603,7 +603,7 @@ MonoBehaviour:
   reveal: {fileID: 7906353593697290124}
   deck: {fileID: 4772152395121104672}
   cardBack: {fileID: 21300000, guid: fe6fa611434103e45b0c28dca4483b19, type: 3}
-  dealInterval: 0.15
+  dealInterval: 0.32
   dealInDistance: 500
   layout:
     cardSpacing: 230

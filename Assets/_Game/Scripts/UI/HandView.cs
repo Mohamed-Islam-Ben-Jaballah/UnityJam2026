@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DiceDrive.Cards;
+using FMODUnity;
 using UnityEngine;
 
 namespace DiceDrive.UI
@@ -40,6 +41,19 @@ namespace DiceDrive.UI
         private void OnDisable()
         {
             service.Selection.OfferChanged -= Refresh;
+        }
+
+        private void Start()
+        {
+            // Load the deal sounds up front so the first card doesn't stall while FMOD reads them from disk.
+            if (FMODEvents.instance == null) return;
+            PreloadSound(FMODEvents.instance.drawCard);
+            PreloadSound(FMODEvents.instance.drawCardEnd);
+        }
+
+        private static void PreloadSound(EventReference sound)
+        {
+            if (!sound.IsNull) RuntimeManager.GetEventDescription(sound).loadSampleData();
         }
 
         private void Refresh()
@@ -106,6 +120,16 @@ namespace DiceDrive.UI
                 float startScale = deck.rect.width / ((RectTransform)view.transform).rect.width;
                 view.Deal(origin, startScale, i * dealInterval, cardBack);
             }
+
+            // The last card is dealt last, so once it is face-up the whole deal is done.
+            if (created.Count > 0) created[created.Count - 1].DealFinished += OnLastCardDealt;
+        }
+
+        private void OnLastCardDealt(CardView last)
+        {
+            last.DealFinished -= OnLastCardDealt;
+            if (AudioManager.instance == null || FMODEvents.instance == null) return;
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.drawCardEnd);
         }
 
         private void ApplyLayout()

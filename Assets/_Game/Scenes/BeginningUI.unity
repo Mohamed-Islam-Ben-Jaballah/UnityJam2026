@@ -1566,6 +1566,7 @@ GameObject:
   - component: {fileID: 879125604}
   - component: {fileID: 879125603}
   - component: {fileID: 879125602}
+  - component: {fileID: 879125605}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1683,6 +1684,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &879125605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879125601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86c6556701af9e04380698b89f691b6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: FMODUnity::FMODUnity.StudioListener
+  nonRigidbodyVelocity: 0
+  attenuationObject: {fileID: 0}
 --- !u!1 &1001618807
 GameObject:
   m_ObjectHideFlags: 0
@@ -9104,6 +9119,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: CardDiceUI
       objectReference: {fileID: 0}
+    - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
+      propertyPath: cardSelectedSound.Path
+      value: event:/Cards/DrawCard
+      objectReference: {fileID: 0}
+    - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
+      propertyPath: cardSelectedSound.Guid.Data1
+      value: 103353799
+      objectReference: {fileID: 0}
+    - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
+      propertyPath: cardSelectedSound.Guid.Data2
+      value: 1102054105
+      objectReference: {fileID: 0}
+    - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
+      propertyPath: cardSelectedSound.Guid.Data3
+      value: 173413262
+      objectReference: {fileID: 0}
+    - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
+      propertyPath: cardSelectedSound.Guid.Data4
+      value: 1923232625
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14795,6 +14830,175 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1603506930}
   m_SourcePrefab: {fileID: 100100000, guid: 5c841eb224e5b2943b48fb3012d3ad74, type: 3}
+--- !u!1 &1953496720
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1953496722}
+  - component: {fileID: 1953496721}
+  - component: {fileID: 1953496723}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1953496721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1953496720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48fbaff03b1e30b4f9c5faca0bd2fb33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::AudioManager
+--- !u!4 &1953496722
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1953496720}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.40404, y: 1.68959, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1953496723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1953496720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c02b24dd4b74808469f27391bdbec816, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::FMODEvents
+  <drawCard>k__BackingField:
+    Guid:
+      Data1: 103353799
+      Data2: 1102054105
+      Data3: 173413262
+      Data4: 1923232625
+    Path: event:/Cards/DrawCard
+  <drawCardEnd>k__BackingField:
+    Guid:
+      Data1: -74477490
+      Data2: 1333849086
+      Data3: 1380774542
+      Data4: -1648277278
+    Path: event:/Cards/DrawCardEnd
+  <placeholderPlayCard>k__BackingField:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  <diceRoll>k__BackingField:
+    Guid:
+      Data1: -1446958053
+      Data2: 1212793994
+      Data3: -278275419
+      Data4: -1756449052
+    Path: event:/Dice/DiceRoll
+  <chineseCharm>k__BackingField:
+    Guid:
+      Data1: -1244835627
+      Data2: 1163495289
+      Data3: -2099754848
+      Data4: 1873233437
+    Path: event:/Chimes/ChineseCharm
+  <devilCharm>k__BackingField:
+    Guid:
+      Data1: 816788221
+      Data2: 1137040840
+      Data3: -2132799088
+      Data4: 994598381
+    Path: event:/Chimes/DevilCharm
+  <elfCharm>k__BackingField:
+    Guid:
+      Data1: 736985029
+      Data2: 1307013569
+      Data3: -497229182
+      Data4: -89754732
+    Path: event:/Chimes/ElfCharm
+  <illegalMove>k__BackingField:
+    Guid:
+      Data1: -1760667025
+      Data2: 1097075836
+      Data3: -755499903
+      Data4: 929022676
+    Path: event:/MightBeUseful/IllegalMove
+  <shuffleDeck>k__BackingField:
+    Guid:
+      Data1: 454406959
+      Data2: 1246533332
+      Data3: 532117647
+      Data4: -512526067
+    Path: event:/MightBeUseful/ShuffleDeck
+  <ButtonClick>k__BackingField:
+    Guid:
+      Data1: -1182120343
+      Data2: 1137592437
+      Data3: -1870110559
+      Data4: 1036735711
+    Path: event:/UI/UIClick
+  <ButtonHover>k__BackingField:
+    Guid:
+      Data1: -650734305
+      Data2: 1328341466
+      Data3: -838572404
+      Data4: -1629862260
+    Path: event:/UI/UIHover
+  <placeholderMusic>k__BackingField:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  <PlayerAttack>k__BackingField:
+    Guid:
+      Data1: -2029936440
+      Data2: 1192930330
+      Data3: -823805549
+      Data4: 329018713
+    Path: event:/Attacks/PlayerAttack
+  <SkeletonAttack>k__BackingField:
+    Guid:
+      Data1: 1222171750
+      Data2: 1253913336
+      Data3: -404213609
+      Data4: -1027251330
+    Path: event:/Attacks/SkeletonAttack
+  <WoodenCreatureAttack>k__BackingField:
+    Guid:
+      Data1: 115095903
+      Data2: 1154218968
+      Data3: -617615221
+      Data4: 1356774799
+    Path: event:/Attacks/WoodenAttack
+  <DaggerAttack>k__BackingField:
+    Guid:
+      Data1: 535625919
+      Data2: 1126267703
+      Data3: -163083593
+      Data4: -280372794
+    Path: event:/Attacks/DaggerAttack
 --- !u!1 &2022093142
 GameObject:
   m_ObjectHideFlags: 0
@@ -14916,3 +15120,4 @@ SceneRoots:
   - {fileID: 1220205336}
   - {fileID: 1583985542}
   - {fileID: 1322459124}
+  - {fileID: 1953496722}

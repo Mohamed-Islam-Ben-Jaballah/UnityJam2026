@@ -31,6 +31,8 @@ namespace DiceDrive.UI
         public event Action<CardView> PointerEntered;
         public event Action<CardView> PointerExited;
         public event Action<CardView> Clicked;
+        /// <summary>Raised once when a dealt card has landed and turned face-up.</summary>
+        public event Action<CardView> DealFinished;
 
         private RectTransform rect;
         private CanvasGroup group;
@@ -46,6 +48,7 @@ namespace DiceDrive.UI
 
         // Dealing: wait at the deck, fly face-down, then flip to the face.
         private float dealDelay;
+        private bool dealing; // true until the card leaves the deck (plays the draw sound once)
         private bool faceDown;
         private float flip = -1f; // < 0: not flipping; 0..1: flip progress
 
@@ -68,6 +71,7 @@ namespace DiceDrive.UI
         /// </summary>
         public void Deal(Vector2 from, float startScale, float delay, Sprite back)
         {
+            dealing = true;
             rect.anchoredPosition = from;
             rect.localRotation = Quaternion.identity;
             scale = startScale;
@@ -114,12 +118,21 @@ namespace DiceDrive.UI
 
         private void Update()
         {
-            float dt = Time.unscaledDeltaTime;
+            // Capped so a hitch (e.g. FMOD loading a sound on first play) can't skip the deal:
+            // without it every remaining delay expires in one frame and the cards snap into place.
+            float dt = Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
             if (dealDelay > 0f)
             {
                 dealDelay -= dt; // waiting for its turn at the deck
                 group.alpha = 0f;
                 return;
+            }
+
+            if (dealing)
+            {
+                dealing = false; // this card is leaving the deck right now
+                PlayDrawSound();
+                if (!faceDown) DealFinished?.Invoke(this); // no card back: there is no flip to wait for
             }
 
             float t = 1f - Mathf.Exp(-smoothing * dt);
@@ -135,6 +148,13 @@ namespace DiceDrive.UI
 
             group.alpha = Mathf.Lerp(group.alpha, targetAlpha, t);
             if (dismissing && group.alpha < 0.02f) Destroy(gameObject);
+        }
+
+        private static void PlayDrawSound()
+        {
+            // Skipped in scenes without the audio objects (e.g. QA scenes).
+            if (AudioManager.instance == null || FMODEvents.instance == null) return;
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.drawCard);
         }
 
         /// <summary>Advances the deal flip and returns the horizontal scale factor (1 = flat, 0 = edge-on).</summary>
@@ -156,6 +176,7 @@ namespace DiceDrive.UI
             faceDown = false;
             flip = -1f;
             if (!dismissing) SetInteractable(true);
+            DealFinished?.Invoke(this);
             return 1f;
         }
 

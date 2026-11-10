@@ -44,6 +44,14 @@ namespace DiceDrive.UI
 
         private Sprite pendingFace;
         private int pendingResult;
+        private FMOD.Studio.EventInstance rollSound;
+
+        private void Start()
+        {
+            // Load the roll sound up front so the first roll doesn't stall while FMOD reads it from disk.
+            if (FMODEvents.instance != null && !FMODEvents.instance.diceRoll.IsNull)
+                FMODUnity.RuntimeManager.GetEventDescription(FMODEvents.instance.diceRoll).loadSampleData();
+        }
 
         public void OnPointerClick(PointerEventData eventData)
         {
@@ -64,6 +72,7 @@ namespace DiceDrive.UI
             pendingFace = faces[result - 1];
             pendingResult = result;
             IsRolling = true;
+            PlayRollSound();
             RollStarted?.Invoke();
             StartCoroutine(Roll(faces));
         }
@@ -72,7 +81,26 @@ namespace DiceDrive.UI
         // shows the result and never stays stuck in IsRolling.
         private void OnDisable()
         {
-            if (IsRolling) Land();
+            if (!IsRolling) return;
+            StopRollSound(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+            Land();
+        }
+
+        private void PlayRollSound()
+        {
+            // The DiceRoll event allows one instance at a time and its tail outlasts the animation,
+            // so a quick re-roll would be silenced: stop the previous sound before starting the new one.
+            StopRollSound(FMOD.Studio.STOP_MODE.IMMEDIATE);
+            if (FMODEvents.instance == null || FMODEvents.instance.diceRoll.IsNull) return;
+
+            rollSound = FMODUnity.RuntimeManager.CreateInstance(FMODEvents.instance.diceRoll);
+            rollSound.start();
+            rollSound.release(); // freed by FMOD once it finishes playing
+        }
+
+        private void StopRollSound(FMOD.Studio.STOP_MODE mode)
+        {
+            if (rollSound.isValid()) rollSound.stop(mode);
         }
 
         private Sprite[] FacesFor(int sides)
