@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< Updated upstream:Assets/Scenes.meta
 guid: 9c53962885c2c4f449125a979d6ad240
+=======
+guid: beeec26e30155484382e36cfbc696469
+>>>>>>> Stashed changes:Assets/Resources/RF Castle/Scenes.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

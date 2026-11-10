@@ -182,7 +182,7 @@ VisualEffect:
         m_Overridden: 1
     m_NamedObject:
       m_Array:
-      - m_Value: {fileID: 2800000, guid: b9757ed18e126f84abe4b7b02b7eeebd, type: 3}
+      - m_Value: {fileID: 0}
         m_Name: MainTexture
         m_Overridden: 1
     m_Bool:
@@ -533,7 +533,7 @@ VisualEffect:
         m_Overridden: 1
     m_NamedObject:
       m_Array:
-      - m_Value: {fileID: 2800000, guid: b9757ed18e126f84abe4b7b02b7eeebd, type: 3}
+      - m_Value: {fileID: 0}
         m_Name: MainTexture
         m_Overridden: 1
     m_Bool:

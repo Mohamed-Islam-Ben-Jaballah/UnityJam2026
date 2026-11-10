@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< Updated upstream:Assets/Monsters Creatures Fantasy.meta
 guid: b049288aabf6630438fd3823fa955fe7
+========
+guid: 86eea661ce500384ab9b06802417057c
+>>>>>>>> Stashed changes:Assets/Plugins/TextMesh Pro/Shaders.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

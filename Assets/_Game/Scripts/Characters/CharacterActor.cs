@@ -67,6 +67,12 @@ namespace DiceDrive.Characters
             }
 
             visual.AttackImpact += () => _impactReceived = true;
+
+            // Characters always render on the top-most sorting layer, above every environment layer.
+            if (!TryGetComponent<CharacterSorting>(out _))
+            {
+                gameObject.AddComponent<CharacterSorting>();
+            }
         }
 
         private void OnEnable()
