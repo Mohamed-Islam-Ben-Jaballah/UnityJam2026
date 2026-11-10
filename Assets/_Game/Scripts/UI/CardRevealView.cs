@@ -33,7 +33,7 @@ namespace DiceDrive.UI
             if (running != null)
             {
                 StopCoroutine(running);
-                current.Dismiss();
+                if (current != null) current.Dismiss();
             }
             running = StartCoroutine(Reveal(card));
         }
@@ -51,10 +51,9 @@ namespace DiceDrive.UI
             yield return PlayRevealAnimation(card);
 
             card.Dismiss();
+            current = null; // already leaving; must not be dismissed again if a new reveal interrupts
             yield return FadeBackdrop(0f, backdropFadeOut);
             backdrop.blocksRaycasts = false;
-
-            current = null;
             running = null;
         }
 

@@ -8,8 +8,8 @@
 
 ## 1. Elevator Pitch
 
-The player holds a hand of cards spanning several "types" (Normal, Elf, Devil,
-China, Angel, Desert). Each turn they roll their dice **one at a time**; the
+The player holds a hand of cards spanning several "types" (Normal, Elvish,
+Devilish, Sinitic, and special Loneliness cards). Each turn they roll their dice **one at a time**; the
 number rolled unlocks which card types may be played. They drag a playable card
 onto a tile of the map grid to move, jump, attack, heal, or reshape terrain.
 The goal is to cross each map to the exit while a real-time torch burns down.
@@ -32,7 +32,7 @@ deck and the dice set.
        │       the player must play one card
        │    else:
        │       the player must reroll
-       │       first reroll of the turn is free; later rerolls cost 1 HP
+       │       one free reroll per map; paid 1 HP rerolls start on map 2
        │       a paid reroll at 1 HP kills the player
        ├─ End of turn:
        │    draw 1 card per die rolled
@@ -68,30 +68,28 @@ cards.
 
 | Die | Sides | Notes |
 |-----|-------|-------|
-| d4  | 1–4   | Starting die |
-| d6  | 1–6   | Adds faces 5 and 6 |
-| d8  | 1–8   | Adds faces 7 and 8 |
+| d6  | 1–6   | The only die type |
 
-- Start: `1 × d4`.
-- The player gains **+1 die on some levels**, not all. The exact schedule is TBD.
+- Start: `1 × d6`.
+- The player gains **+1 d6 on some maps**, not all. The exact schedule is TBD.
 - The dice set is rolled **one die at a time**; each die resolves one card play.
 
 ### 3.2 Number → card type mapping
 
 | Roll | Unlocks |
 |------|---------|
-| 1    | Angel |
-| 2    | Normal only |
-| 3    | Elf |
+| 1    | Loneliness special effects (not a family) |
+| 2    | Elvish (Union) |
+| 3    | Normal only |
 | 4    | Normal only |
-| 5    | Desert |
-| 6    | Devil |
-| 7    | Normal only |
-| 8    | China |
+| 5    | Devilish (Desire) |
+| 6    | Sinitic (Fortune and wealth) |
 
 - **Normal** cards are playable on any roll.
 - Every special type has a single "lucky number".
-- Rolls of 2 / 4 / 7 enable only Normal cards ("normal numbers").
+- Rolls of 3 and 4 enable only Normal cards ("normal numbers").
+- Roll 1 is a normal number with Loneliness special effects. Those effects are
+  still being defined.
 - A special card is playable only when its lucky number is rolled.
 
 ### 3.3 Reroll and mandatory play
@@ -99,15 +97,17 @@ cards.
 - If a card in hand is playable for the rolled number, the player **must play
   one**. They choose which.
 - If no card in hand is playable, the player **must reroll**.
-- The first reroll of the turn is free. Each later reroll costs 1 HP.
-- A paid reroll at 1 HP kills the player.
+- The player has **1 free reroll per map**. It resets at map entry and at a
+  level reset.
+- After the free reroll is spent, paid rerolls cost 1 HP. Paid rerolls unlock
+  starting on map 2. A paid reroll at 1 HP kills the player.
+- On map 1, after the free reroll, an unplayable die is skipped (lost).
 - Rerolling is not allowed while a playable card exists.
 
 ### 3.4 Dice progression
 
-- The player adds dice between maps. The design intent is that dice add
-  **actions**, not just numbers, so a new die is a new card play per turn.
-- Whether d6 and d8 are added, and on which levels, is TBD.
+- The player adds d6 dice between maps. Each die adds one card play per turn.
+- The exact schedule for extra dice is TBD.
 
 ---
 
@@ -129,17 +129,17 @@ cards.
 | Type | Card | Effect | Range | Target |
 |------|------|--------|-------|--------|
 | Normal | Walk | Move up to `diceValue` movement points (diagonal = 2, orthogonal = 1) | Move | tile within rolled movement |
-| Elf (3) | Leapol | Jump 1 | Jump (2, skip 1) | line, 2 tiles |
-| Elf (3) | Squimi | Deal 1 damage | Melee (1) | adjacent tile w/ enemy |
-| Elf (3) | Heilin | Heal 1 HP | Self | — |
-| Devil (6) | Qa'faz | Jump 1 | Jump (2, skip 1) | line, 2 tiles |
-| Devil (6) | Sara'akh | Deal 1 damage | Melee (1) | adjacent tile w/ enemy |
-| Devil (6) | Ha'yen | Remove 1 damaging obstacle | Melee (1) | adjacent damaging tile |
-| China (8) | Maoyi | Jump 1 | Jump (2, skip 1) | line, 2 tiles |
-| China (8) | Sunhai | Deal 1 damage | Melee (1) | adjacent tile w/ enemy |
-| China (8) | Qiahni | Draw 2 cards | Self | — |
-| Angel (1) | Seraphil | 1 damage in a cross (+) | Self (cross) | centered on player |
-| Desert (5) | Zulfar | Flood 8 neighbors with sand | Self (8-neighbor) | centered on player |
+| Elvish (2) | Leapol | Jump 1 | Jump (2, skip 1) | line, 2 tiles |
+| Elvish (2) | Squimi | Deal 1 damage | Melee (1) | adjacent tile w/ enemy |
+| Elvish (2) | Heilin | Heal 1 HP | Self | — |
+| Elvish (2) | MelowCart | Spread tree roots (flood 8 neighbors) | Self (8-neighbor) | centered on player |
+| Devilish (5) | Qa'faz | Jump 1 | Jump (2, skip 1) | line, 2 tiles |
+| Devilish (5) | Sara'akh | Deal 1 damage | Melee (1) | adjacent tile w/ enemy |
+| Devilish (5) | Ha'yen | Remove 1 damaging obstacle | Melee (1) | adjacent damaging tile |
+| Sinitic (6) | Maoyi | Jump 1 | Jump (2, skip 1) | line, 2 tiles |
+| Sinitic (6) | Sunhai | Deal 1 damage | Melee (1) | adjacent tile w/ enemy |
+| Sinitic (6) | Qiahni | Draw 2 cards | Self | — |
+| Loneliness (1) | Cale Azrael | Fire inverted cross: 1 damage in a + | Self (cross) | centered on player |
 
 ### 4.3 Effect definitions
 
@@ -165,17 +165,19 @@ cards.
   adjacent tile. Walls and holes are not affected.
 - **Draw 2 cards** — draw 2 cards from the deck to the hand. The hand cap and
   spent-pile rules apply.
-- **Seraphil (cross)** — deal 1 damage to all enemies in a cross (+): the
-  player's tile and its 4 orthogonal neighbors.
-- **Zulfar (sand flood)** — the 8 surrounding tiles are converted to sand: fill
-  holes, cover damaging tiles (removing their damage), and deal 1 damage to
-  enemies in those tiles. Walls are unaffected. Flying enemies ignore sand.
+- **Cale Azrael (fire inverted cross)** — deal 1 damage to all enemies in a
+  cross (+): the player's tile and its 4 orthogonal neighbors. The visual is a
+  fire inverted cross.
+- **MelowCart (tree roots)** — the 8 surrounding tiles are converted to roots
+  (mechanically sand): fill holes, cover damaging tiles (removing their damage),
+  and deal 1 damage to enemies in those tiles. Walls are unaffected. Flying
+  enemies ignore the roots.
 
 ### 4.4 Range and targeting model
 
 Every card has a range defined relative to the player's current position:
 
-- **Self** — Heal, Draw, Seraphil, Zulfar.
+- **Self** — Heal, Draw, Cale Azrael, MelowCart.
 - **Melee** — target an adjacent tile (8-way; a diagonal counts as 1 range).
 - **Move** — Walk: any valid end tile within `diceValue`.
 - **Jump** — fixed 2-tile leap (skip 1) in any of the 8 directions.
@@ -207,7 +209,7 @@ The `Ranged` card range type is removed. Only enemies have ranged attacks.
 | Exit | yes | yes | win on enter |
 | Treasure | yes | yes | opens once; adds 1–2 random cards; gold/score on enter |
 | Hole | no | yes | filled by sand; no falling |
-| Sand | yes | yes | created by Zulfar |
+| Sand | yes | yes | created by MelowCart (tree roots) |
 | Damaging | yes, at 1 HP per tile | yes | covered by sand |
 | Wall | no | no | cannot be destroyed |
 
@@ -329,9 +331,9 @@ or removals.
 | Card | Type | Lucky # | Count |
 |------|------|---------|-------|
 | Walk | Normal | always | 8 |
-| Leapol | Elf | 3 | 2 |
-| Squimi | Elf | 3 | 2 |
-| Heilin | Elf | 3 | 2 |
+| Leapol | Elvish | 2 | 2 |
+| Squimi | Elvish | 2 | 2 |
+| Heilin | Elvish | 2 | 2 |
 
 ---
 
@@ -350,7 +352,7 @@ or removals.
 | Heal | +1 HP |
 | Draw | 1 per die rolled at end of turn; 1 per kill immediately (2 for a tank) |
 | Treasure | 1–2 random cards, plus gold/score |
-| Reroll | first free, then 1 HP each |
+| Reroll | 1 free per map; paid 1 HP from map 2 |
 | Torch | tuned for 3–6 minute levels |
 | Map size | 8×8 tutorial, 12×12 beginner, up to 38×38 endgame |
 
@@ -364,8 +366,10 @@ or removals.
    values; opened treasure stays opened.
 2. **Draw** — 1 card per die rolled at end of turn; kills draw immediately
    (1 card, or 2 for a tank). Hand cap 8; overflow discards the oldest card.
-3. **Reroll** — only when no card is playable. First reroll free, later rerolls
-   1 HP. A paid reroll at 1 HP kills the player.
+3. **Reroll** — only when no card is playable. One free reroll per map, reset at
+   map entry and level reset. After it, paid rerolls cost 1 HP and unlock on map
+   2. A paid reroll at 1 HP kills the player. On map 1, an unplayable die is
+   skipped.
 4. **Mandatory play** — if a playable card exists, the player must play one.
 5. **Movement** — Walk moves up to the die value of movement (diagonal = 2,
    orthogonal = 1). The player picks the end tile;
@@ -385,12 +389,21 @@ or removals.
 10. **Between maps** — choose 1 of 3 packs (1–3 cards), then 1 of 3 bonuses.
     Each option set can be rerolled once. Removal comes only from the bonus.
 11. **No hole death.** Holes are barriers, not hazards.
-12. **No level-up.** The meta is deck-building plus the per-level bonus.
+12. **No separate character level-up.** Map completion is the progression step;
+    the per-map bonus is the reward. Free reroll increases through map
+    progression are TBD.
 13. **Treasure** — opens once and adds 1–2 random cards. Claimed cards enter the
     level deck immediately, are kept across retries, and merge into the run deck
     on completion. Opened treasure does not reappear on a retry.
 14. **Enemy speed** — fast enemies attack on entry; slow enemies attack at the
     start of the next turn if the player stays in range.
+15. **Families and dice** — Elvish (2, Union), Devilish (5, Desire), Sinitic
+    (6, Fortune and wealth). Rolls 1, 3, and 4 are normal; 1 carries Loneliness
+    special effects, which are not a family. Only d6s exist; the player starts
+    with one and adds more.
+16. **Free rerolls** — one free reroll per map, reset at map entry and level
+    reset. Paid 1 HP rerolls unlock on map 2. More free rerolls through map
+    progression are TBD.
 
 ---
 
@@ -429,6 +442,12 @@ or removals.
 13. **Opened treasure and retries.** Claimed cards are kept, but the tile is
     gone. Verify that a player cannot re-open the same treasure and that the
     claimed cards are not duplicated on a retry.
+14. **Loneliness effects.** Roll 1 is a normal number with special effects that
+    are not yet defined. Add them when the number-1 cards are designed.
+15. **Free reroll scaling.** The base is 1 per map. How additional free rerolls
+    are earned through map progression is TBD.
+16. **Family balance.** Elvish (2) has four cards, including MelowCart; Devilish
+    (5) and Sinitic (6) have three each. The lucky-number spread needs testing.
 
 ---
 

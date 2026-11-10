@@ -7,8 +7,8 @@
 ## M0 — Foundation (grid + dice + gating + torch)
 - [ ] Create grid map, tile rendering, camera setup, path preview skeleton.
 - [ ] Tile types: floor, exit, treasure, hole, sand, damaging, wall.
-- [ ] Dice model (d4/d6/d8) + roll one at a time.
-- [ ] Card-type → lucky-number gating (Normal always playable).
+- [ ] Dice model (d6 only; start with 1, add more) + roll one at a time.
+- [ ] Card-type → lucky-number gating (Normal always; Elvish 2, Devilish 5, Sinitic 6, Loneliness 1).
 - [ ] Minimal hand UI, dice UI, and torch UI.
 - [ ] Real-time torch timer with menu pause and level retry.
 - **Verify:** roll a die, see which card types highlight; let the torch burn
@@ -25,8 +25,8 @@
   enemies may be skipped; walls and flying enemies block.
 - [ ] Draw 1 per die rolled at end of turn; kill draws immediate (1 card, 2 for
   a tank).
-- [ ] Mandatory play: play a card, or reroll when none is playable. First reroll
-  free, then 1 HP; paid reroll at 1 HP kills.
+- [ ] Mandatory play: play a card, or reroll when none is playable. 1 free
+  reroll per map; paid 1 HP from map 2; paid reroll at 1 HP kills.
 - **Verify:** navigate a map with holes, damaging tiles, walls, and a melee
   enemy; confirm a safe path is preferred and a melee tile shows contact
   damage; empty the deck and confirm the level retries; reroll at 1 HP and
@@ -46,8 +46,8 @@
   range cancels; confirm a tank draws 2 and a flying enemy blocks a jump.
 
 ## M3 — Area & terrain
-- [ ] Seraphil cross damage (centered on the player).
-- [ ] Zulfar sand flood: fill holes, cover damaging tiles, damage enemies.
+- [ ] Cale Azrael fire inverted cross (centered on the player).
+- [ ] MelowCart tree-root flood: fill holes, cover damaging tiles, damage enemies.
   Walls are unaffected; flying enemies ignore sand.
 - [ ] Obstacle taxonomy: holes, damaging, walls.
 - **Verify:** use terrain/area cards to reshape the battlefield, fill a hole to
@@ -76,7 +76,7 @@
   1–3 cards / effect TBD).
 - [ ] Reroll each option set once.
 - [ ] Removal comes only from the bonus; no free removal.
-- [ ] Dice add on some levels, not all (schedule TBD).
+- [ ] Add d6s on some maps, not all (schedule TBD).
 - [ ] Gold sink (TBD).
 - [ ] Audio (FMOD), VFX, animation polish, seed-based RNG.
 - **Verify:** full run across multiple maps with pack and bonus choices.
@@ -114,8 +114,8 @@ Merge commits: `60a5897` (SoundDesign), `868fa38` (MazenUI).
   level.
 - Draw: 1 per die rolled at end of turn; kills draw immediately (1 card, 2 for a
   tank). Hand cap 8; overflow discards the oldest.
-- Reroll: only when no card is playable. First reroll free, later rerolls 1 HP.
-  A paid reroll at 1 HP kills.
+- Reroll: only when no card is playable. 1 free reroll per map; paid 1 HP from
+  map 2; reset at map entry and retry. On map 1, an unplayable die is skipped.
 - Walk: up to the die value of movement (diagonal = 2, orthogonal = 1); player picks the end tile; auto-path prefers safe
   routes, then damaging or fast-enemy routes (HP cost), then unreachable.
 - Terrain: three obstacle types — holes (jumpable), damaging (walkable at HP
@@ -127,6 +127,9 @@ Merge commits: `60a5897` (SoundDesign), `868fa38` (MazenUI).
   a time penalty, not a run loss. Pauses in the menu only.
 - Between maps: 1 of 3 packs + 1 of 3 bonuses; reroll each set once.
 - No level-up. Progression is deck-building, bonuses, and occasional extra dice.
+- Families: Elvish (2, Union), Devilish (5, Desire), Sinitic (6, Fortune and
+  wealth). Rolls 1, 3, and 4 are normal; 1 has Loneliness special effects, not a
+  family. Only d6s exist; start with one and add more.
 - Permadeath: HP 0 ends the run. Torch burnout and deck exhaustion are retries.
 
 ---
