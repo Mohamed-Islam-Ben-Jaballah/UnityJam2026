@@ -1,16 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< Updated upstream:Assets/_Game/Art/Board/VFX/VFX_Glow.png.meta
 guid: 914ea0a0127f5844296134d51896122c
-=======
-guid: e0038683bf99a844e96a00192e66b4a2
-AssetOrigin:
-  serializedVersion: 1
-  productId: 164725
-  packageName: Rogue Fantasy Castle
-  packageVersion: 1.0
-  assetPath: Assets/RF Castle/Animated/lightB02.png
-  uploadId: 357221
->>>>>>> Stashed changes:Assets/Resources/RF Castle/Animated/lightB02.png.meta
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
