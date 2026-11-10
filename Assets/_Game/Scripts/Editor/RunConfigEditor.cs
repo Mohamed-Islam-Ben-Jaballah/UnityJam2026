@@ -25,10 +25,10 @@ namespace DiceDrive.EditorTools
                 EditorUtility.SetDirty(config);
             }
 
-            if (GUILayout.Button("Fill Starting Dice (d4)"))
+            if (GUILayout.Button("Fill Starting Dice (d6)"))
             {
                 Undo.RecordObject(config, "Fill Starting Dice");
-                config.startingDice = new[] { LoadDice(4) };
+                config.startingDice = new[] { LoadDice(6) };
                 EditorUtility.SetDirty(config);
             }
 
@@ -39,19 +39,13 @@ namespace DiceDrive.EditorTools
                 EditorUtility.SetDirty(config);
             }
 
-            if (GUILayout.Button("Add d8"))
-            {
-                Undo.RecordObject(config, "Add d8");
-                config.startingDice = AppendDice(config.startingDice, LoadDice(8));
-                EditorUtility.SetDirty(config);
-            }
-
             if (GUILayout.Button("Reset Tuning"))
             {
                 Undo.RecordObject(config, "Reset Tuning");
                 config.maxHp = 6;
                 config.handSize = 5;
                 config.handCap = 8;
+                config.freeRerollsPerMap = 1;
                 config.torchSeconds = 240f;
                 EditorUtility.SetDirty(config);
             }

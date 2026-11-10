@@ -27,7 +27,7 @@ namespace DiceDrive.EditorTools
             EnsureFolder("Assets/_Game/Data/Maps");
             EnsureFolder("Assets/_Game/Data/Dice");
 
-            var d4 = EnsureDice(4);
+            var d6 = EnsureDice(6);
             var walk = LoadCard("Walk");
             var leapol = LoadCard("Leapol");
             var squimi = LoadCard("Squimi");
@@ -37,9 +37,10 @@ namespace DiceDrive.EditorTools
             config.maxHp = 6;
             config.handSize = 5;
             config.handCap = 8;
+            config.freeRerollsPerMap = 1;
             config.torchSeconds = 240f;
             config.startingDeck = BuildStarterDeck(walk, leapol, squimi, heilin);
-            config.startingDice = new[] { d4 };
+            config.startingDice = new[] { d6 };
             EditorUtility.SetDirty(config);
 
             var map = EnsureAsset<MapData>(MapPath);
@@ -55,6 +56,7 @@ namespace DiceDrive.EditorTools
             bootstrap.runConfig = config;
             bootstrap.mapData = map;
             bootstrap.seed = 12345;
+            bootstrap.levelNumber = 1;
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorSceneManager.CloseScene(scene, true);

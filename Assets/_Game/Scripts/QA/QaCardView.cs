@@ -1,4 +1,5 @@
 using DiceDrive.Cards;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,12 +11,12 @@ namespace DiceDrive.QA
         private QaBootstrap _bootstrap;
         private CardInstance _card;
         private Image _background;
-        private Text _label;
+        private TMP_Text _label;
         private bool _dragging;
 
         public CardInstance Card => _card;
 
-        public void Initialize(QaBootstrap bootstrap, CardInstance card, Image background, Text label)
+        public void Initialize(QaBootstrap bootstrap, CardInstance card, Image background, TMP_Text label)
         {
             _bootstrap = bootstrap;
             _card = card;

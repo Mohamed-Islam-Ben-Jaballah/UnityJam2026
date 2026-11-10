@@ -28,8 +28,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5f030f62d64c26b49af55dbc5282e641, type: 2}
   - {fileID: 11400000, guid: 5f030f62d64c26b49af55dbc5282e641, type: 2}
   startingDice:
-  - {fileID: 11400000, guid: db9a00af0feafa4459fe32ab06a78160, type: 2}
+  - {fileID: 11400000, guid: 3f2a1b4c5d6e7f8091a2b3c4d5e6f708, type: 2}
   maxHp: 6
   handSize: 5
   handCap: 8
+  freeRerollsPerMap: 1
   torchSeconds: 240

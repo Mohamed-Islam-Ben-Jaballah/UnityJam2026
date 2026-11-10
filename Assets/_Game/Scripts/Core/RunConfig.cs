@@ -12,6 +12,7 @@ namespace DiceDrive.Core
         public int maxHp = 6;
         public int handSize = 5;
         public int handCap = 8;
+        public int freeRerollsPerMap = 1;
         public float torchSeconds = 240f;
     }
 }
