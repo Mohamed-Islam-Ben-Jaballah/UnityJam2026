@@ -18,6 +18,11 @@ namespace DiceDrive.Board
 
         [SerializeField] private TileBase glowTile;
 
+        [Tooltip("Optional: 16 tiles indexed by which sides get a border (1 = up, 2 = right, 4 = down, 8 = left). " +
+                 "A side is bordered when the neighbouring cell is not a board cell, so each connected group of " +
+                 "cells gets one outline. Leave empty to use Glow Tile everywhere.")]
+        [SerializeField] private TileBase[] edgeTiles = new TileBase[0];
+
         [Header("Chessboard")]
         [Tooltip("Square colors. Each row is offset by two entries, so with 4 colors no square touches one of the same color.")]
         [SerializeField] private Color[] palette =
@@ -78,7 +83,7 @@ namespace DiceDrive.Board
             _cells.Clear();
             _cellSet.Clear();
 
-            if (source != null && glowTile != null)
+            if (source != null && (glowTile != null || (edgeTiles != null && edgeTiles.Length == 16)))
             {
                 foreach (var cell in source.cellBounds.allPositionsWithin)
                 {
@@ -108,9 +113,10 @@ namespace DiceDrive.Board
             // Add glow to new board cells (only touches cells that changed, so the scene stays clean).
             foreach (var cell in _cells)
             {
-                if (_glow.GetTile(cell) != glowTile)
+                var tile = TileFor(cell);
+                if (_glow.GetTile(cell) != tile)
                 {
-                    _glow.SetTile(cell, glowTile);
+                    _glow.SetTile(cell, tile);
                 }
 
                 _glow.SetTileFlags(cell, TileFlags.None);
@@ -184,6 +190,21 @@ namespace DiceDrive.Board
                     _glow.SetColor(cell, color);
                 }
             }
+        }
+
+        private TileBase TileFor(Vector3Int cell)
+        {
+            if (edgeTiles == null || edgeTiles.Length != 16)
+            {
+                return glowTile;
+            }
+
+            var mask = 0;
+            if (!_cellSet.Contains(cell + Vector3Int.up)) mask |= 1;
+            if (!_cellSet.Contains(cell + Vector3Int.right)) mask |= 2;
+            if (!_cellSet.Contains(cell + Vector3Int.down)) mask |= 4;
+            if (!_cellSet.Contains(cell + Vector3Int.left)) mask |= 8;
+            return edgeTiles[mask] != null ? edgeTiles[mask] : glowTile;
         }
 
         private Color BaseColor(Vector3Int cell)

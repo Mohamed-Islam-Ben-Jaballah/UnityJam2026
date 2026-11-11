@@ -1,175 +1,144 @@
-# Dice-Drive
-
-> A roguelike deck-builder where every roll of the dice decides which cards you
-> can play. Roll. Pick. Drag. Survive.
-
----
-
-## Welcome
-
-Welcome travelers and heroes of all the facets of the earth! Are you ready to
-roll your dice and throw your cards? Let fate spin you on a journey across
-plates — only if you are brave enough.
-
-<!-- SCREENSHOT: title / hero image -->
+# DICE-DRIVE
+### Mini Game Design Document (GDD)
+**Genre:** Narrative Fantasy / Dice & Card Strategy  
+**Engine:** Unity | **Perspective:** 2D Isometric  
+**Platform:** PC | **Mode:** Single-player
 
 ---
 
-## The Game in One Minute
+## 1. Game Concept
 
-You hold a hand of consumable cards. Each turn you roll your dice **one at a
-time**, and the number you roll unlocks which card types you may play. Play one
-card per die. Move across the grid or follow a painted path, jump holes, fight or
-avoid enemies, and reach the exit. A real-time torch burns down while you decide.
+A lone swordsman journeys through a mysterious kingdom to reunite with his beloved.
 
-If the torch burns out, your deck empties, or your HP reaches 0, you **reset the
-level** to the state you entered it with. The run continues.
+His journey is governed by a six-sided die and supernatural character cards representing three philosophies of love: **Union, Desire, and Fortune**.
 
----
+The player must survive fixed enemy encounters, manage randomized abilities, and reach one of three narrative endings.
 
-## Map Types
+**Core Loop:** Roll → Choose Card → Move → Resolve Encounter → Repeat.
 
-Dice-Drive has two map kinds. Both use the same cards, dice, enemies, torch, and
-failure rules. Maps are **4 to 64 tiles per side**.
+## 2. Dice & Movement
 
-- **Grid maps** are open tactical boards. You drag Walk to a destination and the
-  game auto-paths. Holes are barriers that need a Jump.
-- **Linear maps** are painted one-way paths on the same N×M canvas. You only move
-  forward along the path. Walk spends the full roll, holes are lethal, and Jump
-  crosses two path steps. At a marked branch, pick one of the arrow buttons.
-  Merges are automatic. Interior exits pause the walk and ask Continue or Enter;
-  the final exit takes itself.
+- One **D6** per turn.
+- **One optional free reroll** per turn.
+- Dice result determines maximum movement distance and available faction abilities.
+- Movement follows a single predefined path, like Snakes & Ladders.
+- Basic Walk moves up to the rolled number of tiles.
+- Enemies interrupt movement. Unused movement points are lost.
+- Only one card can be played per turn.
 
-On a linear map you click a card instead of dragging it. Walk and Jump resolve
-forward automatically, Damage hits the first enemy ahead within range, and Heal
-and Draw are self. Complex cards wait for the next grid map.
+**Example:** Roll 6 → Enemy at tile 3 → Play Damage 1 → Kill enemy → Stop at tile 3.
 
----
+## 3. Cards & Factions
 
-## How to Play
+| Dice | Faction | Character | Ability |
+|---|---|---|---|
+| Any | Basic | Protagonist | Walk × Dice |
+| 2 | Elf — Union | Squimi | Damage 1 |
+| 2 | Elf — Union | Heilin | Heal 1 |
+| 5 | Devil — Desire | Sara'akh | Damage 1 |
+| 5 | Devil — Desire | Ha'yen | Withdraw 2 cards |
+| 6 | China — Fortune | Maoyi | Jump 1 |
+| 6 | China — Fortune | Sunhai | Damage 1 |
+| 6 | China — Fortune | Qiahni | Heal 1 |
 
-### Step 1 — Roll the dice
+Dice results 1, 3, and 4 have no special faction activation. Basic remains playable on every result.
 
-You start with one d6 and add more d6s on some maps. Roll them **one at a time**.
-Each die gives one card play. If no card in hand can be played, you must reroll:
-you have one free reroll per map; after that, paid rerolls cost 1 HP starting on
-map 2, and a paid reroll at 1 HP kills. On the first map, if no card is playable
-after the free reroll, the die is skipped.
+## 4. Hand & Focus Economy
 
-<!-- SCREENSHOT: the dice rolling / dice UI -->
+**Hand size: 5 cards**
+- 2 renewable Basic cards.
+- 3 randomized Ability cards.
+- Played abilities are consumed and replaced.
 
-### Step 2 — Pick a card
+**Focus:**
+- Basic action = +1 Focus.
+- Maximum = 2 Focus.
+- Spend 2 Focus to activate any Ability card regardless of dice result.
+- Focus resets between levels.
 
-Normal cards (Walk) are always playable. Every other type needs its **lucky
-number**. Playable cards glow; locked cards show the number they need. Cards are
-consumed when played, and the deck is finite. Treasure opens once and grants
-cards from its `TreasureData` asset, plus gold and heal; the claimed cards are
-kept if you retry, but the opened tile is gone. Taking an exit opens a three-card
-reward screen.
+**Between levels:** Keep 1 Ability card from the current hand; replace the remaining 2 randomly.
 
-<!-- SCREENSHOT: hand of cards with playable cards highlighted -->
+## 5. Enemies & Health
 
-### Step 3 — Drag it to an area of use
+**Starting HP: 6 (proposed).**
 
-Walk up to the rolled die value of movement. Diagonal steps cost 2; orthogonal steps cost 1. The path preview shows the route:
+There are two encounter types:
 
-- **Green** — safe.
-- **Orange/red** — crosses damaging tiles or melee enemies; you take HP damage.
-- **Grey** — unreachable.
+**Visible Enemies**
+- Occupy fixed path tiles.
+- Basic Walk → Enter enemy tile, take 1 damage, stop.
+- Damage card → Kill enemy, enter tile, stop.
+- Jump → Skip enemy and avoid damage.
 
-On a **grid map**, holes are barriers and need a **Jump**. On a **linear map**,
-walking into a hole kills you and resets the level; use Jump to cross it. Enemies
-have a speed: **fast** enemies attack when you enter their range; **slow** enemies
-attack at the start of the next turn if you stay in range. Melee range is the
-enemy's tile; ranged range is adjacent, including diagonals.
+**Hidden Devils**
+- Invisible beneath fixed path tiles.
+- Trigger when crossed.
+- Deal 1 damage and stop movement.
+- Disappear after activation.
 
-<!-- SCREENSHOT: dragging a card, valid tiles highlighted -->
+There are **no obstacles**, free-roaming enemies, or complex enemy AI.
 
-### Step 4 — Watch the action
+At 0 HP, the run ends.
 
-The card resolves instantly. Ranged enemies telegraph: if you enter their range,
-they attack at the start of the next turn unless you leave range or kill them.
-Then it is the next die's turn.
+## 6. Level Design
 
-<!-- SCREENSHOT: a card action in progress -->
+All five areas use **18 fixed path tiles**, excluding the entrance tile.
 
----
+| Area | Theme | Visible enemy tiles | Hidden devil tiles |
+|---|---|---|---|
+| A | Beginning | 3, 9, 14 | 6 |
+| B | Union | 2, 7, 14 | 5, 11 |
+| C | Desire | 2, 7, 10, 15 | 5, 12 |
+| D | Fortune | 2, 6, 11, 15 | 4, 8, 13 |
+| E | Finale | 2, 6, 9, 13, 16 | 4, 11 |
 
-## Lucky Numbers & the Classes
+- Tile 0 = Start.
+- Tile 18 = Exit.
+- All enemy positions remain fixed.
+- Dice results and deck draws vary each playthrough.
+- Tile distributions are provisional until playtested.
 
-Normal cards are **always** playable. Every other class answers to a single
-**lucky number** — roll it, and that class awakens.
+## 7. Narrative & Endings
 
-| Roll | Awakens |
-|------|---------|
-| 1    | Loneliness special effects |
-| 2    | Elvish (Union) |
-| 3    | Normal only |
-| 4    | Normal only |
-| 5    | Devilish (Desire) |
-| 6    | Sinitic (Fortune and wealth) |
+The hero searches for a lost love while uncovering forgotten memories and confronting three interpretations of love.
 
-- **Normal** — Walk; move up to the rolled value (diagonal 2, orthogonal 1).
-- **Elvish (2)** — Leapol (jump), Squimi (damage), Heilin (heal), MelowCart (tree-root flood).
-- **Devilish (5)** — Qa'faz (jump), Sara'akh (damage), Ha'yen (remove obstacle).
-- **Sinitic (6)** — Maoyi (jump), Sunhai (damage), Qiahni (draw 2 cards).
-- **Loneliness (1)** — Cale Azrael (fire inverted cross); not a family.
+| Route | Progression | Ending |
+|---|---|---|
+| Union | A → B → C → E | Love through trust and mutual choice |
+| Desire | A → C → E | Love through possession and sacrifice |
+| Fortune | A → D → E | Love through acceptance of fate |
 
-> Type decides **when** a card can be played, not what it does. Extra d6s add
-> card plays per turn.
+The first branch determines the ending.
 
----
+**Story delivery:** Opening text cinematic, short narration during levels, environmental storytelling, and three distinct illustrated/narrated endings.
 
-## Your Goal
+## 8. UI & Visual Design
 
-Reach the **exit** of each dungeon before the torch burns out.
+- Subtly illuminated fixed-path tiles.
+- Clear distinction between visible enemies and ordinary tiles.
+- Hidden devils initially concealed.
+- Highlight movement destination and reachable encounters.
+- Display D6 result, reroll, five-card hand, HP, and Focus.
+- Dark-fantasy pixel-art environments with unique thematic areas.
 
-- **Torch burnout**, an **empty deck**, and **HP 0** reset the level. The reset
-  restores HP to the value you entered the level with, restocks the deck and hand,
-  resets the free reroll and torch, and respawns enemies and unopened treasure. It is
-  not a run loss.
-- **Treasure** opens once and grants cards from its `TreasureData` asset, plus
-  gold and heal. Claimed cards are kept on a retry; the opened tile is gone.
-  Gold's use is TBD.
-- **Enemies** hold their ground. **Fast** enemies attack when you enter their
-  range. **Slow** enemies attack at the start of the next turn if you stay in
-  range. Melee range is the enemy's tile; ranged range is adjacent, including diagonals. Tank enemies
-  have 2 HP and draw 2 on death; flying enemies ignore sand and cannot be jumped
-  over.
-- **Terrain:** on grid maps, holes need a Jump or sand, damaging tiles cost HP,
-  and walls block. Linear maps have no walls or sand, and a hole is lethal to
-  Walk.
-- **Between maps** use an exit. On a grid map, stand on a numbered exit and use
-  **Take Exit**. On a linear map, an interior exit asks Continue or Enter; the
-  final exit takes itself. Choose one of three three-card reward options, reroll
-  each option once, then confirm. The destination map starts in the same scene.
-  HP, max HP, gold, owned cards, and the level number carry; the deck restocks,
-  the hand resets, the torch resets, and the old map is discarded. The bonus and
-  meta stage is deferred.
+## 9. Balance Targets
 
-Get stronger. Go deeper. Reach the exit.
+- No progression softlocks caused by dice or cards.
+- Meaningful Ability usage instead of repetitive Basic movement.
+- Manageable health loss across a full route.
+- Different risk levels across narrative paths.
+- Short, replayable journeys.
 
-<!-- SCREENSHOT: the exit / victory moment -->
+**Testing:** Monte Carlo simulations with randomized dice and card draws, plus human playtests.
+
+## 10. Decisions to Finalize
+
+- What exactly does Ha'yen's **Withdraw 2 cards** do?
+- Does Jump end movement immediately after landing?
+- Can Heal or Withdraw be combined with movement?
+- How can players avoid unavoidable death from unlucky enemy encounters?
+- What are the final deck copy counts and death/retry rules?
 
 ---
 
-## Screenshots
-
-> Drop your images below, replacing each comment with an image tag such as
-> `![Description](path/to/image.png)`.
-
-<!-- SCREENSHOT: title / hero image -->
-
-<!-- SCREENSHOT: the dice rolling / dice UI -->
-
-<!-- SCREENSHOT: hand of cards with playable cards highlighted -->
-
-<!-- SCREENSHOT: dragging a card, valid tiles highlighted -->
-
-<!-- SCREENSHOT: a card action in progress -->
-
-<!-- SCREENSHOT: a special class card in action -->
-
-<!-- SCREENSHOT: the between-map deck screen -->
-
-<!-- SCREENSHOT: the exit / victory moment -->
+**DICE-DRIVE — Roll. Choose. Advance. Defy Fate.**
