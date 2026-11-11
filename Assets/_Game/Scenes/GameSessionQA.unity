@@ -149,9 +149,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: _Game.Runtime::DiceDrive.QA.QaBootstrap
   runConfig: {fileID: 11400000, guid: 6bae3058231e69d4486b5f3e874fc225, type: 2}
-  mapData: {fileID: 11400000, guid: b7dd0f09546ddaa45a583564507455a8, type: 2}
-  seed: 12345
+  mapData: {fileID: 11400000, guid: e053036ac89092340ba846e42d10f2f7, type: 2}
+  seed: 0
   tileSize: 1
+  dragLineStartOffset: 24
+  levelNumber: 1
 --- !u!4 &1154617889
 Transform:
   m_ObjectHideFlags: 0

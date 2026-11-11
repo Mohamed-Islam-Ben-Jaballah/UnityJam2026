@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d28dd997966ecd545b68cd9b0961a011, type: 3}
+  m_Name: Treasure
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Grid.TreasureData
+  shortCode: Tc
+  sprite: {fileID: 0}
+  gold: 2
+  heal: 1
+  cardCount: 2
+  cards:
+  - card: {fileID: 11400000, guid: 333993cc5ba240f4c8ddba9af9bdc1ed, type: 2}
+    weight: 1
+  - card: {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+    weight: 1
