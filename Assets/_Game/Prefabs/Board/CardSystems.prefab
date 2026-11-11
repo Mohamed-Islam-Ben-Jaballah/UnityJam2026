@@ -1,0 +1,212 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1809194290756827726
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1677183997482782703}
+  - component: {fileID: 7878010818514943287}
+  - component: {fileID: 3841116587570877278}
+  - component: {fileID: 2312206149644904398}
+  - component: {fileID: 6025721037205868373}
+  - component: {fileID: 475896433368108738}
+  - component: {fileID: 5346817780418229189}
+  - component: {fileID: 257145424308809928}
+  - component: {fileID: 8096516062533751715}
+  m_Layer: 0
+  m_Name: CardSystems
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1677183997482782703
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809194290756827726}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7878010818514943287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809194290756827726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d2e9c022312c4e46901febaf7a94364, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.CardSelectionService
+  logSelections: 1
+--- !u!114 &3841116587570877278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809194290756827726}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53c6f0f9d04d5f54499a054bdf0e3b51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.PlaceholderCardSource
+  service: {fileID: 7878010818514943287}
+  cards:
+  - id: placeholder-01
+    artwork: {fileID: 21300000, guid: 3ad8e8a0c38f66f43a9e11a86b053910, type: 3}
+    label: 
+    placeholderColor: {r: 0, g: 0, b: 0, a: 0}
+  - id: placeholder-02
+    artwork: {fileID: 21300000, guid: e47251c13226e904798b107e36142178, type: 3}
+    label: 
+    placeholderColor: {r: 0, g: 0, b: 0, a: 0}
+  - id: placeholder-03
+    artwork: {fileID: 21300000, guid: c89ebcb5f4ae7da41b023de8b6217dc1, type: 3}
+    label: 
+    placeholderColor: {r: 0, g: 0, b: 0, a: 0}
+  - id: placeholder-04
+    artwork: {fileID: 21300000, guid: c664b4e70de769b49af2114ed43f4eb3, type: 3}
+    label: 
+    placeholderColor: {r: 0, g: 0, b: 0, a: 0}
+--- !u!114 &2312206149644904398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809194290756827726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aee7cce09d331e54cab991802a8ba03f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.CardSelectionAudio
+  service: {fileID: 7878010818514943287}
+  cardSelectedSound:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+--- !u!114 &6025721037205868373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809194290756827726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c376b95c9567d91419a364c9b652eae1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.DiceSystem.PlaceholderDiceRoller
+  view: {fileID: 0}
+  die: {fileID: 11400000, guid: 3f2a1b4c5d6e7f8091a2b3c4d5e6f708, type: 2}
+--- !u!114 &475896433368108738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809194290756827726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f607e0f1ab1de3e418a582d58a825ab8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.DiceSelectionGate
+  service: {fileID: 7878010818514943287}
+  dice: {fileID: 0}
+--- !u!114 &5346817780418229189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809194290756827726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdd7bda5840e2854da5ef4775c4e4c4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Board.DiceBoardMovement
+  dice: {fileID: 0}
+  player: {fileID: 0}
+  path: {fileID: 257145424308809928}
+  glows:
+  - {fileID: 0}
+  - {fileID: 0}
+  playerTag: Player
+  rules:
+    startingHp: 6
+    maxHp: 6
+    enemyHitDamage: 1
+    devilDamage: 1
+    jumpSkip: 1
+  dieSides: 6
+  rerollsPerTurn: 1
+  enemies: []
+  hiddenDevils: []
+  attackReach: 1.4
+  evaporateDuration: 0.5
+  encounterColor: {r: 1, g: 0.25, b: 0.2, a: 1}
+  destinationColor: {r: 1, g: 0.85, b: 0.3, a: 1}
+--- !u!114 &257145424308809928
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809194290756827726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32f0a4f5dc9a70d4380b37a43f43b881, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Board.BoardPath
+  points: []
+  expectedPlayablePositions: 18
+  walkableTilemaps: []
+  walkableTilemapNames:
+  - Ground
+  - Parallel_Ground
+  startMarker: {fileID: 0}
+--- !u!114 &8096516062533751715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809194290756827726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 216a614e277d04941823d3b6435c244b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Board.CardPathActions
+  service: {fileID: 7878010818514943287}
+  movement: {fileID: 5346817780418229189}
+  focusView: {fileID: 0}
+  abilityPool:
+  - {fileID: 11400000, guid: bbf17d9a44befea429b3b00e60bb96d6, type: 2}
+  - {fileID: 11400000, guid: 5f030f62d64c26b49af55dbc5282e641, type: 2}
+  - {fileID: 11400000, guid: 0888a50f51efe544386b8af7d1cc26f3, type: 2}
+  - {fileID: 11400000, guid: 867196d8312898c43b3d15de7f566c78, type: 2}
+  - {fileID: 11400000, guid: 65d2bfe0c73874245961f0d9d3fce298, type: 2}
+  - {fileID: 11400000, guid: 3310d4f1ce65b2b4299b1390a4e191be, type: 2}
+  - {fileID: 11400000, guid: dab13ffb224b99446a6c07698af7facc, type: 2}
+  basicWalkCard: {fileID: 11400000, guid: 4d4cf32a063921d4690c9b8ceb911ea3, type: 2}
+  randomSeed: 0
+  maxFocus: 2
+  focusCost: 2
+  walkRoll: 1

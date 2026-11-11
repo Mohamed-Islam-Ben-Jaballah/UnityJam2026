@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DiceDrive.Entities;
 
 namespace DiceDrive.Board
@@ -56,38 +57,109 @@ namespace DiceDrive.Board
     }
 
     /// <summary>
-    /// Fixed-path rules (plain C#): position, HP and encounters by path index. The presenter walks the player one
-    /// position at a time and asks these primitives what happens; resolved encounters never trigger again.
+    /// Path rules (plain C#): position, HP and encounters by path index. Positions form a graph (forks allowed):
+    /// before walking, the presenter picks one of <see cref="RoutesFor"/> and sets it with <see cref="SetRoute"/>;
+    /// the player then steps along it one position at a time and asks these primitives what happens. Resolved
+    /// encounters never trigger again.
     /// </summary>
     public sealed class PathSession
     {
         private readonly PathRuleSettings _settings;
+        private readonly Func<int, IReadOnlyList<int>> _next;
         private readonly Dictionary<int, List<PathEncounter>> _byIndex = new Dictionary<int, List<PathEncounter>>();
         private readonly List<PathEncounter> _encounters = new List<PathEncounter>();
+        private readonly List<int> _route = new List<int>();
 
-        public int ExitIndex { get; }
+        /// <summary>Number of positions (0 = start).</summary>
+        public int Count { get; }
         public int Position { get; private set; }
         public PlayerState Player { get; }
         public bool IsDead => !Player.IsAlive;
-        public bool AtExit => Position >= ExitIndex;
+        public bool AtExit => IsExit(Position);
         public IReadOnlyList<PathEncounter> Encounters => _encounters;
+
+        /// <summary>Positions still ahead on the chosen route (not including the current one).</summary>
+        public IReadOnlyList<int> Route => _route;
+
+        /// <summary>The position the next step goes to: the route's next one, else the only way on; -1 if none/ambiguous.</summary>
+        public int Next => _route.Count > 0 ? _route[0] : Single(Successors(Position));
 
         public event Action<int> HpChanged;
         public event Action PlayerDied;
 
+        /// <summary>Straight path: 0 → 1 → … → <paramref name="exitIndex"/>.</summary>
         public PathSession(int exitIndex, PathRuleSettings settings, int startIndex = 0)
+            : this(exitIndex + 1, i => i < exitIndex ? new[] { i + 1 } : new int[0], settings, startIndex)
         {
-            if (exitIndex < 1) throw new ArgumentOutOfRangeException(nameof(exitIndex));
+        }
+
+        /// <param name="count">Number of positions.</param>
+        /// <param name="next">Positions reachable in one step from a position (empty = exit).</param>
+        public PathSession(int count, Func<int, IReadOnlyList<int>> next, PathRuleSettings settings, int startIndex = 0)
+        {
+            if (count < 2) throw new ArgumentOutOfRangeException(nameof(count));
+            _next = next ?? throw new ArgumentNullException(nameof(next));
             _settings = settings ?? new PathRuleSettings();
-            ExitIndex = exitIndex;
-            Position = Math.Max(0, Math.Min(startIndex, exitIndex));
+            Count = count;
+            Position = Math.Max(0, Math.Min(startIndex, count - 1));
             var max = Math.Max(1, _settings.maxHp);
             Player = new PlayerState { MaxHp = max, Hp = Math.Max(0, Math.Min(_settings.startingHp, max)) };
         }
 
+        public IReadOnlyList<int> Successors(int index) => _next(index) ?? new int[0];
+        public bool IsExit(int index) => Successors(index).Count == 0;
+
+        /// <summary>
+        /// Every route a roll of <paramref name="steps"/> can take from the current position, one per distinct
+        /// destination (a route stops early at an exit). Each route lists the positions after the current one.
+        /// </summary>
+        public List<IReadOnlyList<int>> RoutesFor(int steps)
+        {
+            var routes = new List<IReadOnlyList<int>>();
+            var destinations = new HashSet<int>();
+            var current = new List<int>();
+
+            void Walk(int from, int left)
+            {
+                var next = Successors(from);
+                if (left == 0 || next.Count == 0)
+                {
+                    if (current.Count > 0 && destinations.Add(from)) routes.Add(current.ToArray());
+                    return;
+                }
+
+                foreach (var n in next)
+                {
+                    current.Add(n);
+                    Walk(n, left - 1);
+                    current.RemoveAt(current.Count - 1);
+                }
+            }
+
+            Walk(Position, Math.Max(0, steps));
+            return routes;
+        }
+
+        /// <summary>Sets the positions to walk (must start next to the current position and follow the links).</summary>
+        public void SetRoute(IEnumerable<int> route)
+        {
+            var list = route?.ToList() ?? new List<int>();
+            var from = Position;
+            foreach (var n in list)
+            {
+                if (!Successors(from).Contains(n)) throw new ArgumentException($"Position {n} doesn't follow {from}.", nameof(route));
+                from = n;
+            }
+
+            _route.Clear();
+            _route.AddRange(list);
+        }
+
+        public void ClearRoute() => _route.Clear();
+
         public PathEncounter AddEncounter(int index, EncounterKind kind, object tag = null)
         {
-            if (index < 1 || index > ExitIndex) throw new ArgumentOutOfRangeException(nameof(index));
+            if (index < 1 || index >= Count) throw new ArgumentOutOfRangeException(nameof(index));
             var encounter = new PathEncounter(index, kind, tag);
             if (!_byIndex.TryGetValue(index, out var list)) _byIndex[index] = list = new List<PathEncounter>();
             list.Add(encounter);
@@ -104,10 +176,11 @@ namespace DiceDrive.Board
         /// </summary>
         public PathEncounter StepForward()
         {
-            if (AtExit || IsDead) throw new InvalidOperationException("Can't step forward.");
-            if (EnemyAt(Position + 1) != null) throw new InvalidOperationException("An enemy blocks the next position.");
+            var next = Next;
+            if (AtExit || IsDead || next < 0) throw new InvalidOperationException("Can't step forward (no route chosen?).");
+            if (EnemyAt(next) != null) throw new InvalidOperationException("An enemy blocks the next position.");
 
-            Position++;
+            MoveTo(next, 1);
             var devil = Find(Position, EncounterKind.HiddenDevil);
             if (devil != null)
             {
@@ -125,7 +198,7 @@ namespace DiceDrive.Board
             CheckBlocking(enemy);
             enemy.Alive = false;
             enemy.Resolved = true;
-            Position = enemy.Index;
+            MoveTo(enemy.Index, 1);
         }
 
         /// <summary>No card: the player is hurt, the enemy evaporates, the player stands on its tile.</summary>
@@ -134,18 +207,23 @@ namespace DiceDrive.Board
             CheckBlocking(enemy);
             enemy.Alive = false;
             enemy.Resolved = true;
-            Position = enemy.Index;
+            MoveTo(enemy.Index, 1);
             return Hurt(_settings.enemyHitDamage);
         }
 
-        /// <summary>Landing position of a jump over this enemy, or -1 if it can't be jumped (exit/enemy beyond).</summary>
+        /// <summary>
+        /// Landing position of a jump over this enemy, or -1 if it can't be jumped (past an exit, enemy beyond, or a
+        /// fork right after the enemy with no route chosen through it).
+        /// </summary>
         public int JumpLanding(PathEncounter enemy)
         {
-            var landing = enemy.Index + Math.Max(1, _settings.jumpSkip);
-            if (landing > ExitIndex) return -1; // never jump beyond the exit
-            for (var i = enemy.Index + 1; i <= landing; i++)
+            var landing = enemy.Index;
+            var skip = Math.Max(1, _settings.jumpSkip);
+            for (var k = 1; k <= skip; k++)
             {
-                if (EnemyAt(i) != null) return -1;
+                // Along the chosen route first (route[0] is the enemy), then the only way on.
+                landing = k < _route.Count ? _route[k] : Single(Successors(landing));
+                if (landing < 0 || EnemyAt(landing) != null) return -1;
             }
 
             return landing;
@@ -160,8 +238,8 @@ namespace DiceDrive.Board
 
             enemy.Bypassed = true;
             enemy.Resolved = true;
-            var moved = landing - Position;
-            Position = landing;
+            var moved = 1 + Math.Max(1, _settings.jumpSkip);
+            MoveTo(landing, moved);
 
             devilAtLanding = Find(landing, EncounterKind.HiddenDevil);
             if (devilAtLanding != null)
@@ -185,11 +263,20 @@ namespace DiceDrive.Board
 
         private void CheckBlocking(PathEncounter enemy)
         {
-            if (enemy == null || enemy.Index != Position + 1 || EnemyAt(enemy.Index) != enemy)
+            if (enemy == null || enemy.Index != Next || EnemyAt(enemy.Index) != enemy)
             {
                 throw new InvalidOperationException("That enemy is not blocking the next position.");
             }
         }
+
+        /// <summary>Moves <paramref name="steps"/> positions ahead and drops them from the route.</summary>
+        private void MoveTo(int index, int steps)
+        {
+            Position = index;
+            _route.RemoveRange(0, Math.Min(steps, _route.Count));
+        }
+
+        private static int Single(IReadOnlyList<int> list) => list.Count == 1 ? list[0] : -1;
 
         private PathEncounter Find(int index, EncounterKind kind)
         {
