@@ -6534,18 +6534,18 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1023460028}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3d20c86a5980cf44fa2c517174fcc5e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.SceneMusic
   music:
     Guid:
-      Data1: -370637148
-      Data2: 1111966169
-      Data3: -1088263490
-      Data4: -1928461000
-    Path: event:/Music/Bass+Lowdrums
+      Data1: -365369388
+      Data2: 1144334533
+      Data3: 1189136289
+      Data4: 649412328
+    Path: event:/Ambience
 --- !u!1 &1128009867
 GameObject:
   m_ObjectHideFlags: 0
