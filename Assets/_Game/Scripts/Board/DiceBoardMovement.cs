@@ -270,9 +270,14 @@ namespace DiceDrive.Board
             Vector3 world = cam.ScreenToWorldPoint(pointer.position.ReadValue());
             world.z = 0f;
             int tile = path.IndexAt(world);
-            if (tile == Destination) Go();
-            else if (tile >= 0) IllegalMoveAttempted?.Invoke(tile);
+            if (tile < 0) return; // clicked off the path: ignore
+
+            // Any highlighted destination is valid (several when the path forks); the clicked one picks the branch.
+            if (!IsDestination(tile) || !Go(tile)) IllegalMoveAttempted?.Invoke(tile);
         }
+
+        /// <summary>True if <paramref name="tile"/> is one of the current roll's <see cref="Destinations"/>.</summary>
+        public bool IsDestination(int tile) => Destinations.Contains(tile);
 
         /// <summary>DEVELOPMENT ONLY: roll (or reroll) to a chosen result.</summary>
         public bool ForceRoll(int value)

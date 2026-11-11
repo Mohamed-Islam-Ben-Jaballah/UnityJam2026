@@ -1226,6 +1226,8 @@ MonoBehaviour:
     - {x: -17, y: 0, z: 0}
     - {x: -16, y: 0, z: 0}
     - {x: -15, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: -12.5, y: 0, z: 0}
     cells:
     - {x: -14, y: -1, z: 0}
@@ -1234,6 +1236,8 @@ MonoBehaviour:
     - {x: -14, y: 0, z: 0}
     - {x: -13, y: 0, z: 0}
     - {x: -12, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: -9.5, y: 0, z: 0}
     cells:
     - {x: -11, y: -1, z: 0}
@@ -1242,6 +1246,8 @@ MonoBehaviour:
     - {x: -11, y: 0, z: 0}
     - {x: -10, y: 0, z: 0}
     - {x: -9, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: -6.5, y: 0, z: 0}
     cells:
     - {x: -8, y: -1, z: 0}
@@ -1250,6 +1256,8 @@ MonoBehaviour:
     - {x: -8, y: 0, z: 0}
     - {x: -7, y: 0, z: 0}
     - {x: -6, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: -3.5, y: 0, z: 0}
     cells:
     - {x: -5, y: -1, z: 0}
@@ -1258,6 +1266,8 @@ MonoBehaviour:
     - {x: -5, y: 0, z: 0}
     - {x: -4, y: 0, z: 0}
     - {x: -3, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: -0.5, y: 0, z: 0}
     cells:
     - {x: -2, y: -1, z: 0}
@@ -1266,6 +1276,8 @@ MonoBehaviour:
     - {x: -2, y: 0, z: 0}
     - {x: -1, y: 0, z: 0}
     - {x: 0, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: 2.5, y: 0, z: 0}
     cells:
     - {x: 1, y: -1, z: 0}
@@ -1274,6 +1286,8 @@ MonoBehaviour:
     - {x: 1, y: 0, z: 0}
     - {x: 2, y: 0, z: 0}
     - {x: 3, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: 5.5, y: 0, z: 0}
     cells:
     - {x: 4, y: -1, z: 0}
@@ -1282,6 +1296,8 @@ MonoBehaviour:
     - {x: 4, y: 0, z: 0}
     - {x: 5, y: 0, z: 0}
     - {x: 6, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: 8.5, y: 0, z: 0}
     cells:
     - {x: 7, y: -1, z: 0}
@@ -1290,6 +1306,8 @@ MonoBehaviour:
     - {x: 7, y: 0, z: 0}
     - {x: 8, y: 0, z: 0}
     - {x: 9, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: 11.5, y: 0, z: 0}
     cells:
     - {x: 10, y: -1, z: 0}
@@ -1298,6 +1316,8 @@ MonoBehaviour:
     - {x: 10, y: 0, z: 0}
     - {x: 11, y: 0, z: 0}
     - {x: 12, y: 0, z: 0}
+    next: 
+    isExit: 0
   - position: {x: 14.5, y: 0, z: 0}
     cells:
     - {x: 13, y: -1, z: 0}
@@ -1306,6 +1326,8 @@ MonoBehaviour:
     - {x: 13, y: 0, z: 0}
     - {x: 14, y: 0, z: 0}
     - {x: 15, y: 0, z: 0}
+    next: 
+    isExit: 0
   expectedPlayablePositions: 18
   walkableTilemaps: []
   walkableTilemapNames:
@@ -8140,7 +8162,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1220205332
 MonoBehaviour:
   m_ObjectHideFlags: 0
