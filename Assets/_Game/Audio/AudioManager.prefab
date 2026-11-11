@@ -1,0 +1,220 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7059450399887093612
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5139756050277640628}
+  - component: {fileID: 5227322104433840816}
+  - component: {fileID: 5640574103411880758}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5139756050277640628
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7059450399887093612}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -9.84017, y: 7.08654, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5227322104433840816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7059450399887093612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48fbaff03b1e30b4f9c5faca0bd2fb33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::AudioManager
+--- !u!114 &5640574103411880758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7059450399887093612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c02b24dd4b74808469f27391bdbec816, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::FMODEvents
+  <drawCard>k__BackingField:
+    Guid:
+      Data1: 103353799
+      Data2: 1102054105
+      Data3: 173413262
+      Data4: 1923232625
+    Path: event:/Cards/DrawCard
+  <drawCardEnd>k__BackingField:
+    Guid:
+      Data1: -74477490
+      Data2: 1333849086
+      Data3: 1380774542
+      Data4: -1648277278
+    Path: event:/Cards/DrawCardEnd
+  <PlayCard>k__BackingField:
+    Guid:
+      Data1: -1117701054
+      Data2: 1145597762
+      Data3: -138718538
+      Data4: 2126127712
+    Path: event:/Cards/PlayCard
+  <HoverCard>k__BackingField:
+    Guid:
+      Data1: 237947275
+      Data2: 1166012642
+      Data3: 1189894846
+      Data4: -632075921
+    Path: event:/Cards/HoverCard
+  <diceRoll>k__BackingField:
+    Guid:
+      Data1: -1446958053
+      Data2: 1212793994
+      Data3: -278275419
+      Data4: -1756449052
+    Path: event:/Dice/DiceRoll
+  <chineseCharm>k__BackingField:
+    Guid:
+      Data1: -1244835627
+      Data2: 1163495289
+      Data3: -2099754848
+      Data4: 1873233437
+    Path: event:/Chimes/ChineseCharm
+  <devilCharm>k__BackingField:
+    Guid:
+      Data1: 816788221
+      Data2: 1137040840
+      Data3: -2132799088
+      Data4: 994598381
+    Path: event:/Chimes/DevilCharm
+  <elfCharm>k__BackingField:
+    Guid:
+      Data1: 736985029
+      Data2: 1307013569
+      Data3: -497229182
+      Data4: -89754732
+    Path: event:/Chimes/ElfCharm
+  <illegalMove>k__BackingField:
+    Guid:
+      Data1: -1760667025
+      Data2: 1097075836
+      Data3: -755499903
+      Data4: 929022676
+    Path: event:/MightBeUseful/IllegalMove
+  <shuffleDeck>k__BackingField:
+    Guid:
+      Data1: 454406959
+      Data2: 1246533332
+      Data3: 532117647
+      Data4: -512526067
+    Path: event:/MightBeUseful/ShuffleDeck
+  <ButtonClick>k__BackingField:
+    Guid:
+      Data1: -1182120343
+      Data2: 1137592437
+      Data3: -1870110559
+      Data4: 1036735711
+    Path: event:/UI/UIClick
+  <ButtonHover>k__BackingField:
+    Guid:
+      Data1: -650734305
+      Data2: 1328341466
+      Data3: -838572404
+      Data4: -1629862260
+    Path: event:/UI/UIHover
+  <MainMenuMusic>k__BackingField:
+    Guid:
+      Data1: -1289486927
+      Data2: 1101819673
+      Data3: -1861011822
+      Data4: 90215880
+    Path: event:/Music/MainMenuMusic
+  <LowDnB>k__BackingField:
+    Guid:
+      Data1: -370637148
+      Data2: 1111966169
+      Data3: -1088263490
+      Data4: -1928461000
+    Path: event:/Music/Bass+Lowdrums
+  <DnbAndCello>k__BackingField:
+    Guid:
+      Data1: -62989338
+      Data2: 1115849945
+      Data3: 1773804975
+      Data4: 1030638624
+    Path: event:/Music/Bass+Lowdrums+ostinato
+  <CelloSolo>k__BackingField:
+    Guid:
+      Data1: -1200500955
+      Data2: 1263232616
+      Data3: 1268987777
+      Data4: 1265053136
+    Path: event:/Music/CelloSolo
+  <SoloViolin>k__BackingField:
+    Guid:
+      Data1: 1646949542
+      Data2: 1086714844
+      Data3: -1965071960
+      Data4: 229355153
+    Path: event:/Music/SoloViolin
+  <HarpsichordandGuitar>k__BackingField:
+    Guid:
+      Data1: 1707970721
+      Data2: 1160160803
+      Data3: -515499385
+      Data4: 1373557049
+    Path: event:/Music/Harpischord + Guitar
+  <PlayerAttack>k__BackingField:
+    Guid:
+      Data1: -2029936440
+      Data2: 1192930330
+      Data3: -823805549
+      Data4: 329018713
+    Path: event:/Attacks/PlayerAttack
+  <PlayerWalk>k__BackingField:
+    Guid:
+      Data1: 305629206
+      Data2: 1167554773
+      Data3: 1741270151
+      Data4: -756323962
+    Path: event:/Walk
+  <SkeletonAttack>k__BackingField:
+    Guid:
+      Data1: 1222171750
+      Data2: 1253913336
+      Data3: -404213609
+      Data4: -1027251330
+    Path: event:/Attacks/SkeletonAttack
+  <WoodenCreatureAttack>k__BackingField:
+    Guid:
+      Data1: 115095903
+      Data2: 1154218968
+      Data3: -617615221
+      Data4: 1356774799
+    Path: event:/Attacks/WoodenAttack
+  <DaggerAttack>k__BackingField:
+    Guid:
+      Data1: 535625919
+      Data2: 1126267703
+      Data3: -163083593
+      Data4: -280372794
+    Path: event:/Attacks/DaggerAttack

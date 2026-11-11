@@ -141,6 +141,7 @@ GameObject:
   - component: {fileID: 3171615672813090890}
   - component: {fileID: 7456271663581689126}
   - component: {fileID: 149949697873335764}
+  - component: {fileID: 161850931358615510}
   m_Layer: 0
   m_Name: Mushroom
   m_TagString: Untagged
@@ -212,3 +213,16 @@ MonoBehaviour:
   baseOrder: 0
   sortByY: 1
   yPrecision: 100
+--- !u!114 &161850931358615510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5895281000812594938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23a3da88a8163684899ed5d2a88f9054, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.EnemyAudio
+  attackSound: 3

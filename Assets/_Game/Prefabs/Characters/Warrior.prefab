@@ -78,6 +78,7 @@ GameObject:
   - component: {fileID: 6457144631020616760}
   - component: {fileID: 2175582282434043221}
   - component: {fileID: 2210442512382132753}
+  - component: {fileID: 3350965795243635195}
   m_Layer: 0
   m_Name: Visual
   m_TagString: Untagged
@@ -196,6 +197,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Characters.CharacterAnimator
   artFacesRight: 1
+--- !u!114 &3350965795243635195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7517742290872655561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0fb75b810230d04497175e1d1be5179, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.PlayerAudio
 --- !u!1 &7771864236589815441
 GameObject:
   m_ObjectHideFlags: 0

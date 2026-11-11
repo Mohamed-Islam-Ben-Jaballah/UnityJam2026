@@ -4198,6 +4198,7 @@ GameObject:
   - component: {fileID: 280719223}
   - component: {fileID: 280719231}
   - component: {fileID: 280719230}
+  - component: {fileID: 280719232}
   m_Layer: 0
   m_Name: CardSystems
   m_TagString: Untagged
@@ -4289,11 +4290,11 @@ MonoBehaviour:
   service: {fileID: 280719228}
   cardSelectedSound:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -1117701054
+      Data2: 1145597762
+      Data3: -138718538
+      Data4: 2126127712
+    Path: event:/Cards/PlayCard
 --- !u!114 &280719227
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4535,6 +4536,18 @@ MonoBehaviour:
   - Ground
   - Parallel_Ground
   startMarker: {fileID: 0}
+--- !u!114 &280719232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 280719222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f68909ae2fd4ee24088c2895444d0906, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.BoardAudio
 --- !u!1 &370991015
 GameObject:
   m_ObjectHideFlags: 0
@@ -6509,6 +6522,30 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &1023460028 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7059450399887093612, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+  m_PrefabInstance: {fileID: 3086071885231366275}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1023460032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023460028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d20c86a5980cf44fa2c517174fcc5e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.SceneMusic
+  music:
+    Guid:
+      Data1: -365369388
+      Data2: 1144334533
+      Data3: 1189136289
+      Data4: 649412328
+    Path: event:/Ambience
 --- !u!1 &1128009867
 GameObject:
   m_ObjectHideFlags: 0
@@ -9185,6 +9222,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1453597593}
   - component: {fileID: 1453597594}
+  - component: {fileID: 1453597595}
   m_Layer: 5
   m_Name: Hand
   m_TagString: Untagged
@@ -9227,6 +9265,9 @@ MonoBehaviour:
   cardPrefab: {fileID: 3078488381142574124, guid: e2f14957d34bbd842a1ce7a1547f1355, type: 3}
   cardContainer: {fileID: 1453597593}
   reveal: {fileID: 7418458}
+  deck: {fileID: 0}
+  cardBack: {fileID: 0}
+  dealInterval: 0.15
   dealInDistance: 500
   layout:
     cardSpacing: 230
@@ -9238,6 +9279,18 @@ MonoBehaviour:
     hoverPush: 45
     dimmedScale: 0.94
     shadeAmount: 1
+--- !u!114 &1453597595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1453597592}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dee41c60348f6c94a938f2c845f4d490, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.HandAudio
 --- !u!1001 &1476935478
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9327,6 +9380,7 @@ GameObject:
   - component: {fileID: 1501073794}
   - component: {fileID: 1501073793}
   - component: {fileID: 1501073791}
+  - component: {fileID: 1501073795}
   m_Layer: 5
   m_Name: Dice
   m_TagString: Untagged
@@ -9372,9 +9426,10 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 34373907f8da17e4c935c8677b5103a2, type: 3}
     - {fileID: 21300000, guid: 19b4241d453cf904ebb64cead4415bd0, type: 3}
     - {fileID: 21300000, guid: f489c19610dff1f4ea807bda0c7a1b08, type: 3}
-  rollDuration: 0.7
+  rollDuration: 3
   spinSpeed: 900
-  faceFlickerInterval: 0.06
+  fastFaceInterval: 0.06
+  slowFaceInterval: 0.45
   disabledTint: {r: 0.55, g: 0.55, b: 0.55, a: 1}
 --- !u!224 &1501073792
 RectTransform:
@@ -9434,6 +9489,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1501073790}
   m_CullTransparentMesh: 1
+--- !u!114 &1501073795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1501073790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f63c706848a6194bb0ad20234bd87f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.DiceAudio
 --- !u!114 &1596014681 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7238555019843448120, guid: 40173bac2764a8a4eb2b7532a957d099, type: 3}
@@ -12276,6 +12343,66 @@ Transform:
   - {fileID: 1213949422}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &3086071885231366275
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -9.84017
+      objectReference: {fileID: 0}
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.08654
+      objectReference: {fileID: 0}
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5139756050277640628, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7059450399887093612, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      propertyPath: m_Name
+      value: AudioManager
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7059450399887093612, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1023460032}
+  m_SourcePrefab: {fileID: 100100000, guid: 114a63169360cbc469140809d1fa2d07, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -12293,3 +12420,4 @@ SceneRoots:
   - {fileID: 1128009868}
   - {fileID: 280719229}
   - {fileID: 469126414}
+  - {fileID: 3086071885231366275}
