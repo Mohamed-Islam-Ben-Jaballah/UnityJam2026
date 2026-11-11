@@ -18,6 +18,10 @@ namespace DiceDrive.UI
     {
         [SerializeField] private RectTransform visual;
         [SerializeField] private Image artwork;
+        [Tooltip("Optional text shown only while the card has no artwork (placeholder cards).")]
+        [SerializeField] private TMPro.TMP_Text placeholderLabel;
+        [Tooltip("Tint while the card can't be played (e.g. dice don't match).")]
+        [SerializeField] private Color lockedTint = new(0.35f, 0.35f, 0.38f);
         [Tooltip("Tint applied to the card image when it is shaded (another card is hovered).")]
         [SerializeField] private Color shadedTint = new(0.4f, 0.4f, 0.45f);
         [SerializeField] private float smoothing = 14f;
@@ -47,6 +51,8 @@ namespace DiceDrive.UI
         private float shade;
         private float targetAlpha = 1f;
         private bool dismissing;
+        private Color baseColor = Color.white;
+        private bool locked;
 
         // Dealing: wait at the deck, fly face-down, then flip to the face.
         private float dealDelay;
@@ -86,14 +92,28 @@ namespace DiceDrive.UI
             flip = -1f;
             artwork.sprite = back;
             artwork.enabled = true;
+            baseColor = Color.white; // the card back is never tinted as a placeholder
+            if (placeholderLabel != null) placeholderLabel.gameObject.SetActive(false);
             SetInteractable(false);
         }
 
         private void ShowFace()
         {
             artwork.sprite = Card.Artwork;
-            artwork.enabled = Card.Artwork != null;
+
+            // No artwork yet: show a plain coloured card with its label instead of nothing.
+            var placeholder = Card.Artwork == null && !string.IsNullOrEmpty(Card.Label);
+            artwork.enabled = Card.Artwork != null || placeholder;
+            baseColor = Card.Artwork != null ? Color.white : Card.PlaceholderColor;
+            if (placeholderLabel != null)
+            {
+                placeholderLabel.gameObject.SetActive(placeholder);
+                placeholderLabel.text = Card.Label;
+            }
         }
+
+        /// <summary>Locked cards are dimmed (they can still be hovered).</summary>
+        public void SetLocked(bool value) => locked = value;
 
         /// <summary>Sets the pose the card eases toward. <paramref name="shadeAmount"/> is 0 (normal) to 1 (fully shaded).</summary>
         public void SetPose(Vector2 position, float angle, float lift, float scale, float shadeAmount)
@@ -146,7 +166,8 @@ namespace DiceDrive.UI
             visual.localScale = new Vector3(scale * UpdateFlip(dt), scale, 1f);
 
             shade = Mathf.Lerp(shade, targetShade, t);
-            artwork.color = Color.Lerp(Color.white, shadedTint, shade);
+            var tinted = baseColor * (locked ? lockedTint : Color.white);
+            artwork.color = Color.Lerp(tinted, tinted * shadedTint, shade);
 
             group.alpha = Mathf.Lerp(group.alpha, targetAlpha, t);
             if (dismissing && group.alpha < 0.02f) Destroy(gameObject);

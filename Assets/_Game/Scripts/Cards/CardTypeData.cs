@@ -17,6 +17,13 @@ namespace DiceDrive.Cards
         public CardTypeId typeId;
         public int luckyNumber;
         public string displayName;
+
+        [Tooltip("Faction theme shown on cards, e.g. Union, Desire, Fortune.")]
+        public string theme;
+
+        [Tooltip("Placeholder card colour for this faction.")]
+        public Color color = Color.gray;
+
         public Sprite icon;
     }
 }

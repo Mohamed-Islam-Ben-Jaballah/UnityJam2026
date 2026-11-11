@@ -16,6 +16,11 @@ namespace DiceDrive.Cards
         [Tooltip("The complete, finished card image.")]
         [SerializeField] private Sprite artwork;
 
+        [Tooltip("Optional text shown on the card while it has no artwork (placeholder cards).")]
+        [SerializeField] private string label;
+        [Tooltip("Card colour while it has no artwork.")]
+        [SerializeField] private Color placeholderColor = Color.gray;
+
         [NonSerialized] private CardInstance instance;
 
         public CardInfo(string id, Sprite artwork)
@@ -25,8 +30,16 @@ namespace DiceDrive.Cards
             this.artwork = artwork;
         }
 
+        public CardInfo(string id, Sprite artwork, string label, Color placeholderColor) : this(id, artwork)
+        {
+            this.label = label;
+            this.placeholderColor = placeholderColor;
+        }
+
         public string Id => id;
         public Sprite Artwork => artwork;
+        public string Label => label;
+        public Color PlaceholderColor => placeholderColor;
 
         /// <summary>
         /// The gameplay card this was built from (null for placeholder cards). Lets the gameplay side

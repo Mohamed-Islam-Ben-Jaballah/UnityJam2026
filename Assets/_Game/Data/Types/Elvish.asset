@@ -15,4 +15,6 @@ MonoBehaviour:
   typeId: 1
   luckyNumber: 2
   displayName: Elvish
+  theme: Union
+  color: {r: 0.18, g: 0.52, b: 0.24, a: 1}
   icon: {fileID: 0}

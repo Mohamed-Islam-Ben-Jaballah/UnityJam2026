@@ -42,12 +42,28 @@ namespace DiceDrive.UI
 
         public bool IsRolling { get; private set; }
 
+        [Tooltip("Tint of the die while it can't be clicked (e.g. while the player is walking).")]
+        [SerializeField] private Color disabledTint = new Color(0.55f, 0.55f, 0.55f, 1f);
+
+        private bool interactable = true;
+
+        /// <summary>When false, clicks are ignored and the die is dimmed.</summary>
+        public bool Interactable
+        {
+            get => interactable;
+            set
+            {
+                interactable = value;
+                if (dieGraphic != null) dieGraphic.color = value ? Color.white : disabledTint;
+            }
+        }
+
         private Sprite pendingFace;
         private int pendingResult;
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (eventData.button == PointerEventData.InputButton.Left && !IsRolling) RollRequested?.Invoke();
+            if (eventData.button == PointerEventData.InputButton.Left && !IsRolling && interactable) RollRequested?.Invoke();
         }
 
         /// <summary>Plays the tumble animation and lands on <paramref name="result"/>.</summary>

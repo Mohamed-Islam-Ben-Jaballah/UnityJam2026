@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.CardData
   cardName: Maoyi
   cardType: {fileID: 11400000, guid: e53029dfe4ee5aa4f9fa9272c25f9302, type: 2}
+  ability: {fileID: 11400000, guid: aad3cde4e3b56b54e98eb72d4f417b58, type: 2}
   effect: 1
   rangeType: 3
   rangeValue: 2

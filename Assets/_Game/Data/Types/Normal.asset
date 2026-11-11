@@ -15,4 +15,6 @@ MonoBehaviour:
   typeId: 0
   luckyNumber: 0
   displayName: Normal
+  theme: Basic
+  color: {r: 0.45, g: 0.45, b: 0.48, a: 1}
   icon: {fileID: 0}
