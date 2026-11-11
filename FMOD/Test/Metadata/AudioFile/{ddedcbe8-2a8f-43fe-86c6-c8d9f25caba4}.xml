@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{ddedcbe8-2a8f-43fe-86c6-c8d9f25caba4}">
+		<property name="assetPath">
+			<value>inGameSFX/Cards/PlayCard.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>0.21904166666666666</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{28934dde-b0e7-480c-88b4-72af10cea213}</destination>
+		</relationship>
+	</object>
+</objects>

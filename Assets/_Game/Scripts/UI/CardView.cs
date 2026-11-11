@@ -25,12 +25,20 @@ namespace DiceDrive.UI
         [Tooltip("Tint applied to the card image when it is shaded (another card is hovered).")]
         [SerializeField] private Color shadedTint = new(0.4f, 0.4f, 0.45f);
         [SerializeField] private float smoothing = 14f;
+        [Tooltip("How long the face-down to face-up flip takes after a dealt card lands.")]
+        [SerializeField] private float flipDuration = 0.25f;
+        [Tooltip("A dealt card starts flipping once it is this close to its slot.")]
+        [SerializeField] private float flipStartDistance = 6f;
 
         public CardInfo Card { get; private set; }
 
         public event Action<CardView> PointerEntered;
         public event Action<CardView> PointerExited;
         public event Action<CardView> Clicked;
+        /// <summary>Raised once when a dealt card leaves the deck.</summary>
+        public event Action<CardView> DealStarted;
+        /// <summary>Raised once when a dealt card has landed and turned face-up.</summary>
+        public event Action<CardView> DealFinished;
 
         private RectTransform rect;
         private CanvasGroup group;
@@ -38,12 +46,19 @@ namespace DiceDrive.UI
         private float targetAngle;
         private float targetLift;
         private float targetScale = 1f;
+        private float scale = 1f;
         private float targetShade;
         private float shade;
         private float targetAlpha = 1f;
         private bool dismissing;
         private Color baseColor = Color.white;
         private bool locked;
+
+        // Dealing: wait at the deck, fly face-down, then flip to the face.
+        private float dealDelay;
+        private bool dealing; // true until the card leaves the deck (raises DealStarted once)
+        private bool faceDown;
+        private float flip = -1f; // < 0: not flipping; 0..1: flip progress
 
         private void Awake()
         {
@@ -54,16 +69,46 @@ namespace DiceDrive.UI
         public void Bind(CardInfo card)
         {
             Card = card;
-            artwork.sprite = card.Artwork;
+            if (!faceDown) ShowFace();
+        }
+
+        /// <summary>
+        /// Deals the card from <paramref name="from"/> (e.g. the deck): it stays hidden for
+        /// <paramref name="delay"/> seconds, flies to its slot showing <paramref name="back"/>,
+        /// then flips to its face. Not clickable until the flip is done.
+        /// </summary>
+        public void Deal(Vector2 from, float startScale, float delay, Sprite back)
+        {
+            dealing = true;
+            rect.anchoredPosition = from;
+            rect.localRotation = Quaternion.identity;
+            scale = startScale;
+            visual.localScale = Vector3.one * startScale;
+            dealDelay = delay;
+            group.alpha = 0f;
+
+            if (back == null) return;
+            faceDown = true;
+            flip = -1f;
+            artwork.sprite = back;
+            artwork.enabled = true;
+            baseColor = Color.white; // the card back is never tinted as a placeholder
+            if (placeholderLabel != null) placeholderLabel.gameObject.SetActive(false);
+            SetInteractable(false);
+        }
+
+        private void ShowFace()
+        {
+            artwork.sprite = Card.Artwork;
 
             // No artwork yet: show a plain coloured card with its label instead of nothing.
-            var placeholder = card.Artwork == null && !string.IsNullOrEmpty(card.Label);
-            artwork.enabled = card.Artwork != null || placeholder;
-            baseColor = card.Artwork != null ? Color.white : card.PlaceholderColor;
+            var placeholder = Card.Artwork == null && !string.IsNullOrEmpty(Card.Label);
+            artwork.enabled = Card.Artwork != null || placeholder;
+            baseColor = Card.Artwork != null ? Color.white : Card.PlaceholderColor;
             if (placeholderLabel != null)
             {
                 placeholderLabel.gameObject.SetActive(placeholder);
-                placeholderLabel.text = card.Label;
+                placeholderLabel.text = Card.Label;
             }
         }
 
@@ -95,12 +140,30 @@ namespace DiceDrive.UI
 
         private void Update()
         {
-            float t = 1f - Mathf.Exp(-smoothing * Time.unscaledDeltaTime);
+            // Capped so a hitch (e.g. FMOD loading a sound on first play) can't skip the deal:
+            // without it every remaining delay expires in one frame and the cards snap into place.
+            float dt = Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
+            if (dealDelay > 0f)
+            {
+                dealDelay -= dt; // waiting for its turn at the deck
+                group.alpha = 0f;
+                return;
+            }
+
+            if (dealing)
+            {
+                dealing = false; // this card is leaving the deck right now
+                DealStarted?.Invoke(this);
+                if (!faceDown) DealFinished?.Invoke(this); // no card back: there is no flip to wait for
+            }
+
+            float t = 1f - Mathf.Exp(-smoothing * dt);
 
             rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, targetPosition, t);
             rect.localRotation = Quaternion.Slerp(rect.localRotation, Quaternion.Euler(0f, 0f, targetAngle), t);
             visual.anchoredPosition = Vector2.Lerp(visual.anchoredPosition, new Vector2(0f, targetLift), t);
-            visual.localScale = Vector3.Lerp(visual.localScale, Vector3.one * targetScale, t);
+            scale = Mathf.Lerp(scale, targetScale, t);
+            visual.localScale = new Vector3(scale * UpdateFlip(dt), scale, 1f);
 
             shade = Mathf.Lerp(shade, targetShade, t);
             var tinted = baseColor * (locked ? lockedTint : Color.white);
@@ -108,6 +171,29 @@ namespace DiceDrive.UI
 
             group.alpha = Mathf.Lerp(group.alpha, targetAlpha, t);
             if (dismissing && group.alpha < 0.02f) Destroy(gameObject);
+        }
+
+        /// <summary>Advances the deal flip and returns the horizontal scale factor (1 = flat, 0 = edge-on).</summary>
+        private float UpdateFlip(float dt)
+        {
+            if (!faceDown) return 1f;
+
+            if (flip < 0f)
+            {
+                if ((rect.anchoredPosition - targetPosition).sqrMagnitude > flipStartDistance * flipStartDistance) return 1f;
+                flip = 0f; // landed: start flipping
+            }
+
+            flip = Mathf.Min(flip + dt / flipDuration, 1f);
+            if (flip >= 0.5f && artwork.sprite != Card.Artwork) ShowFace(); // swap at the edge-on moment
+
+            if (flip < 1f) return Mathf.Abs(Mathf.Cos(flip * Mathf.PI));
+
+            faceDown = false;
+            flip = -1f;
+            if (!dismissing) SetInteractable(true);
+            DealFinished?.Invoke(this);
+            return 1f;
         }
 
         public void OnPointerEnter(PointerEventData eventData) => PointerEntered?.Invoke(this);

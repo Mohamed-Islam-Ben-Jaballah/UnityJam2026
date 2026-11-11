@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{d4582cb9-9028-4cd4-ae7c-096f7fc9e3b2}">
+		<property name="name">
+			<value>DiceVariant</value>
+		</property>
+		<relationship name="folder">
+			<destination>{1394dfb7-0985-4be2-b784-994961a6961a}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{a4692cdb-45a8-43bd-aa31-9ca06c68a194}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{a4692cdb-45a8-43bd-aa31-9ca06c68a194}">
+		<property name="parameterType">
+			<value>2</value>
+		</property>
+		<property name="maximum">
+			<value>5</value>
+		</property>
+		<property name="enumerationLabels">
+			<value>Dice_1</value>
+			<value>Dice_2</value>
+			<value>Dice_3</value>
+			<value>Dice_4</value>
+			<value>Dice_5</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>
