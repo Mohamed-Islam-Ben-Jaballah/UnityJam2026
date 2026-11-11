@@ -5,7 +5,8 @@
 ---
 
 ## M0 — Foundation (grid + dice + gating + torch)
-- [ ] Create grid map, tile rendering, camera setup, path preview skeleton.
+- [ ] Create Grid and Linear map kinds on a 4–64 canvas, tile rendering, camera
+  setup, and the Grid path-preview skeleton.
 - [ ] Tile types: floor, exit, treasure, hole, sand, damaging, wall.
 - [ ] Dice model (d6 only; start with 1, add more) + roll one at a time.
 - [ ] Card-type → lucky-number gating (Normal always; Elvish 2, Devilish 5, Sinitic 6, Loneliness 1).
@@ -60,13 +61,12 @@
 - [ ] Torch burnout → level retry.
 - [ ] Retry restores HP to the level-entry value, not full. Claimed treasure is
   kept; opened treasure stays gone.
-- [ ] Player HP 0 → run ends.
+- [ ] Player HP 0 → level reset to the entry state.
 - [ ] Fast/slow enemy attack timing pass.
 - [ ] Remove the old hole-death and hole-restart rules.
 - **Verify:** complete a full map; empty the deck and confirm the level retries;
   burn the torch and confirm the retry HP equals entry HP; confirm opened
-  treasure does not respawn; lose a run at HP 0. There is no "fall into a hole"
-  test.
+  treasure does not respawn; reset at HP 0. There is no "fall into a hole" test.
 
 ## M5 — Roguelike meta & polish
 - [ ] Between-map pack choice: 1 of 3 packs, 1–3 cards each.
@@ -130,7 +130,8 @@ Merge commits: `60a5897` (SoundDesign), `868fa38` (MazenUI).
 - Families: Elvish (2, Union), Devilish (5, Desire), Sinitic (6, Fortune and
   wealth). Rolls 1, 3, and 4 are normal; 1 has Loneliness special effects, not a
   family. Only d6s exist; start with one and add more.
-- Permadeath: HP 0 ends the run. Torch burnout and deck exhaustion are retries.
+- Failure: HP 0, torch burnout, and deck exhaustion reset the level to its entry state.
+  There is no run loss until the end-of-run map.
 
 ---
 
@@ -150,8 +151,7 @@ Merge commits: `60a5897` (SoundDesign), `868fa38` (MazenUI).
 ---
 
 ## Scope note
-Map sizes are 8×8 for tutorial maps, 12×12 for beginner maps, and up to 38×38
-for endgame maps. Treasure cards and the per-level pack are the deck-growth
-sources, so treasure density must scale with map size. The endgame size is large
-for the early action economy and the 3–6 minute torch. The first playable build
-should prove the 8×8 loop before investing in large maps.
+Map sizes are 8 to 32 per side, with 8×8 tutorial and 12×12 beginner presets.
+Treasure cards and the exit reward screen are the deck-growth sources, so
+treasure density must scale with map size. The first playable build should prove
+the 8×8 loop before investing in large maps.

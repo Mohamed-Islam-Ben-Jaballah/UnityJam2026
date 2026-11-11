@@ -6,7 +6,11 @@ namespace DiceDrive.Turn
         TurnStart,
         AwaitingRoll,
         AwaitingCard,
+        AwaitingPathChoice,
+        AwaitingExitChoice,
         Drawing,
+        Reward,
+        Loading,
         LevelComplete,
         LevelRetry,
         RunOver

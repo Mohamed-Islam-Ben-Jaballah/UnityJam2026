@@ -12,11 +12,23 @@ namespace DiceDrive.Turn
     public sealed class GameSession
     {
         private readonly RunConfig _config;
-        private readonly MapData _map;
+        private MapData _map;
         private readonly Random _random;
+        private RewardSelection _rewardSelection;
+        private MapData _pendingDestination;
+        private ThemeData _pendingTheme;
+        private bool _transitionInProgress;
         private readonly Pathfinder _pathfinder = new Pathfinder();
         private readonly List<EnemyState> _enemies = new List<EnemyState>();
         private readonly List<GridCoord> _openedTreasure = new List<GridCoord>();
+        private readonly HashSet<GridCoord> _forfeitedExits = new HashSet<GridCoord>();
+        private PathGraph _pathGraph;
+        private int _linearMovementRemaining;
+        private bool _linearMovementActive;
+        private GridCoord? _branchDirection;
+        private ExitSpawn _pendingExit;
+        private bool _hasPendingExit;
+        private List<CardData> _runDeckOrder = new List<CardData>();
 
         private GridMap _grid;
         private PlayerState _player;
@@ -57,6 +69,20 @@ namespace DiceDrive.Turn
         public bool IsRunOver => _runOver;
         public IReadOnlyList<CardData> RunDeck => _levelStartDeckOrder;
         public IReadOnlyList<GridCoord> OpenedTreasure => _openedTreasure;
+        public MapData MapData => _map;
+        public RewardSelection RewardSelection => _rewardSelection;
+        public bool IsOnExit => TryGetCurrentExit(out _);
+        public bool IsOnTreasure => _map != null && _map.TryGetTreasureAt(_player != null ? _player.Position : default, out _);
+        public bool IsLinearMap => _map != null && _map.IsLinear;
+        public PathGraph PathGraph => _pathGraph;
+        public bool IsAwaitingPathChoice => Phase == TurnPhase.AwaitingPathChoice;
+        public bool IsAwaitingExitChoice => Phase == TurnPhase.AwaitingExitChoice;
+        public bool HasAnyChoicePrompt => IsAwaitingPathChoice || IsAwaitingExitChoice;
+        public GridCoord? BranchDirection => _branchDirection;
+        public IReadOnlyList<GridCoord> BranchOptions =>
+            _pathGraph != null && _player != null
+                ? _pathGraph.GetForwardOptions(_player.Position)
+                : Array.Empty<GridCoord>();
 
         public event Action<TurnPhase> PhaseChanged;
         public event Action<int> DiceRolled;
@@ -70,6 +96,7 @@ namespace DiceDrive.Turn
         public event Action LevelRetried;
         public event Action LevelCompleted;
         public event Action RunEnded;
+        public event Action<MapData> LevelTransitioned;
 
         public GameSession(RunConfig config, MapData map, Random random)
         {
@@ -95,18 +122,24 @@ namespace DiceDrive.Turn
                 Position = _map.playerSpawn
             };
 
-            _levelStartDeckOrder = _config.startingDeck != null
+            _runDeckOrder = _config.startingDeck != null
                 ? new List<CardData>(_config.startingDeck)
                 : new List<CardData>();
+            _levelStartDeckOrder = BuildLevelDeck(_runDeckOrder, _map);
 
             _deck = new Deck(CreateInstances(_levelStartDeckOrder));
             _deck.Shuffle(_random);
             _levelStartDeckOrder = _deck.Cards.Select(card => card.Data).ToList();
 
+            ResetLinearState(true);
             _openedTreasure.Clear();
             _levelComplete = false;
             _runOver = false;
             _retryInProgress = false;
+            _transitionInProgress = false;
+            _rewardSelection = null;
+            _pendingDestination = null;
+            _pendingTheme = null;
             _turnNumber = 0;
             _currentRoll = 0;
             _diceRolledThisTurn = 0;
@@ -128,7 +161,8 @@ namespace DiceDrive.Turn
 
         public void TickTorch(float deltaSeconds)
         {
-            if (_runOver || _levelComplete)
+            if (_runOver || _levelComplete || Phase == TurnPhase.Reward ||
+                Phase == TurnPhase.Loading || Phase == TurnPhase.LevelRetry)
             {
                 return;
             }
@@ -158,14 +192,15 @@ namespace DiceDrive.Turn
 
         public IEnumerable<CardInstance> GetPlayableCards()
         {
-            if (_hand == null)
+            if (_hand == null || Phase != TurnPhase.AwaitingCard)
             {
                 yield break;
             }
 
             foreach (var card in _hand.Cards)
             {
-                if (IsTypePlayable(card) && HasAnyValidTarget(card))
+                if (IsTypePlayable(card) &&
+                    (IsLinearMap ? CanPlayAuto(card, out _) : HasAnyValidTarget(card)))
                 {
                     yield return card;
                 }
@@ -199,11 +234,21 @@ namespace DiceDrive.Turn
                 return false;
             }
 
+            if (IsLinearMap)
+            {
+                return CanPlayAuto(card, out reason);
+            }
+
             return HasValidTarget(card, target, out reason);
         }
 
         public ActionResult PlayCard(CardInstance card, GridCoord target)
         {
+            if (IsLinearMap)
+            {
+                return PlayCardAuto(card);
+            }
+
             if (!CanPlay(card, target, out var reason))
             {
                 return ActionResult.Fail(ActionStatus.InvalidTarget, reason);
@@ -213,8 +258,36 @@ namespace DiceDrive.Turn
             _spent.Add(card);
             ExecuteEffect(card, target);
             CardPlayed?.Invoke(card, target);
+            return FinishCardPlay();
+        }
 
-            if (_runOver || _levelComplete || Phase == TurnPhase.LevelRetry || Phase == TurnPhase.AwaitingRoll)
+        public ActionResult PlayCardAuto(CardInstance card)
+        {
+            if (!CanPlayAuto(card, out var reason))
+            {
+                return ActionResult.Fail(ActionStatus.InvalidTarget, reason);
+            }
+
+            var effect = card.Data.effect;
+            _hand.Remove(card);
+            _spent.Add(card);
+            ExecuteLinearEffect(card);
+            CardPlayed?.Invoke(card, _player.Position);
+
+            if (effect == CardEffectType.Walk || effect == CardEffectType.Jump)
+            {
+                return ActionResult.Ok();
+            }
+
+            return FinishCardPlay();
+        }
+
+        private ActionResult FinishCardPlay()
+        {
+            if (_runOver || _levelComplete || Phase == TurnPhase.LevelRetry ||
+                Phase == TurnPhase.Reward || Phase == TurnPhase.Loading ||
+                Phase == TurnPhase.AwaitingRoll || Phase == TurnPhase.AwaitingPathChoice ||
+                Phase == TurnPhase.AwaitingExitChoice || _linearMovementActive || _hasPendingExit)
             {
                 return ActionResult.Ok();
             }
@@ -258,7 +331,7 @@ namespace DiceDrive.Turn
                 if (_player.Hp <= 1)
                 {
                     DamagePlayer(1, DamageSource.Reroll);
-                    return ActionResult.Fail(ActionStatus.RunOver, "The paid reroll killed the player.");
+                    return ActionResult.Ok();
                 }
 
                 DamagePlayer(1, DamageSource.Reroll);
@@ -426,6 +499,7 @@ namespace DiceDrive.Turn
         private void BuildWorld()
         {
             _grid = _map.CreateGrid();
+            _pathGraph = _map.IsLinear ? new PathGraph(_map) : null;
 
             foreach (var coord in _openedTreasure)
             {
@@ -435,8 +509,13 @@ namespace DiceDrive.Turn
                 }
             }
 
-            _player.MaxHp = _config.maxHp;
-            _player.Position = _map.playerSpawn;
+            var start = _map.hasPlayerSpawn ? _map.playerSpawn : new GridCoord(0, 0);
+            if (!_grid.InBounds(start))
+            {
+                start = new GridCoord(0, 0);
+            }
+
+            _player.Position = start;
             _grid.Get(_player.Position).HasPlayer = true;
 
             _enemies.Clear();
@@ -449,7 +528,8 @@ namespace DiceDrive.Turn
 
             foreach (var spawn in _map.enemySpawns)
             {
-                if (spawn.data == null)
+                if (spawn.data == null || !_grid.InBounds(spawn.coord) ||
+                    (_map.IsLinear && !_map.IsPath(spawn.coord)))
                 {
                     continue;
                 }
@@ -495,6 +575,46 @@ namespace DiceDrive.Turn
             return instances;
         }
 
+        private static List<CardData> BuildLevelDeck(IEnumerable<CardData> runDeck, MapData map)
+        {
+            var result = new List<CardData>();
+            if (runDeck == null)
+            {
+                return result;
+            }
+
+            foreach (var card in runDeck)
+            {
+                if (card == null)
+                {
+                    continue;
+                }
+
+                if (map != null && map.IsLinear && !MapValidator.IsLinearAllowed(card))
+                {
+                    continue;
+                }
+
+                result.Add(card);
+            }
+
+            return result;
+        }
+
+        private void ResetLinearState(bool clearForfeitedExits)
+        {
+            _linearMovementRemaining = 0;
+            _linearMovementActive = false;
+            _branchDirection = null;
+            _pendingExit = default;
+            _hasPendingExit = false;
+
+            if (clearForfeitedExits)
+            {
+                _forfeitedExits.Clear();
+            }
+        }
+
         private bool DrawCards(int count, bool triggerRetry = true)
         {
             for (var i = 0; i < count; i++)
@@ -530,6 +650,491 @@ namespace DiceDrive.Turn
             }
 
             return card.Data.cardType.luckyNumber == _currentRoll;
+        }
+
+        public bool CanPlayAuto(CardInstance card, out string reason)
+        {
+            reason = null;
+
+            if (Phase != TurnPhase.AwaitingCard)
+            {
+                reason = "The session is not waiting for a card.";
+                return false;
+            }
+
+            if (card == null || card.Data == null)
+            {
+                reason = "Invalid card.";
+                return false;
+            }
+
+            if (!IsTypePlayable(card))
+            {
+                reason = "The card type is locked for this roll.";
+                return false;
+            }
+
+            if (!IsLinearMap || !MapValidator.IsLinearAllowed(card.Data))
+            {
+                reason = "The card cannot be played on this map.";
+                return false;
+            }
+
+            if (_pathGraph != null && _player != null &&
+                _pathGraph.IsBranch(_player.Position) && !_branchDirection.HasValue)
+            {
+                reason = "Choose a branch first.";
+                return false;
+            }
+
+            switch (card.Data.effect)
+            {
+                case CardEffectType.Walk:
+                    if (!HasAnyLinearForwardStep())
+                    {
+                        reason = "There is no forward path.";
+                        return false;
+                    }
+
+                    return true;
+                case CardEffectType.Jump:
+                    return CanLinearJump(out reason);
+                case CardEffectType.Damage:
+                    if (FindLinearDamageTarget(card.Data.rangeValue) == null)
+                    {
+                        reason = "No enemy is directly ahead within range.";
+                        return false;
+                    }
+
+                    return true;
+                case CardEffectType.Heal:
+                    if (_player.Hp >= _player.MaxHp)
+                    {
+                        reason = "HP is already full.";
+                        return false;
+                    }
+
+                    return true;
+                case CardEffectType.Draw:
+                    if (_deck.Count < Math.Max(1, card.Data.drawCount))
+                    {
+                        reason = "The deck cannot supply the draw.";
+                        return false;
+                    }
+
+                    return true;
+                default:
+                    reason = "The card cannot be played on a linear map.";
+                    return false;
+            }
+        }
+
+        private bool HasAnyLinearForwardStep()
+        {
+            if (_pathGraph == null || _player == null)
+            {
+                return false;
+            }
+
+            return _pathGraph.GetForwardOptions(_player.Position).Count > 0;
+        }
+
+        private void ExecuteLinearEffect(CardInstance card)
+        {
+            switch (card.Data.effect)
+            {
+                case CardEffectType.Walk:
+                    StartLinearWalk();
+                    break;
+                case CardEffectType.Jump:
+                    StartLinearJump();
+                    break;
+                case CardEffectType.Damage:
+                    var target = FindLinearDamageTarget(card.Data.rangeValue);
+                    if (target != null)
+                    {
+                        DamageEnemy(target, card.Data.damage);
+                    }
+                    break;
+                case CardEffectType.Heal:
+                    ExecuteHeal(card.Data.heal);
+                    break;
+                case CardEffectType.Draw:
+                    DrawCards(card.Data.drawCount);
+                    break;
+            }
+        }
+
+        private void StartLinearWalk()
+        {
+            _linearMovementActive = true;
+            _linearMovementRemaining = _currentRoll;
+            ContinueLinearMovement();
+        }
+
+        private bool CanLinearJump(out string reason)
+        {
+            reason = null;
+            if (_pathGraph == null || _player == null)
+            {
+                reason = "No path is available.";
+                return false;
+            }
+
+            if (_pathGraph.IsBranch(_player.Position) && !_branchDirection.HasValue)
+            {
+                reason = "Choose a branch first.";
+                return false;
+            }
+
+            if (!TryGetLinearStep(_player.Position, out var first))
+            {
+                reason = "There is no forward path.";
+                return false;
+            }
+
+            if (_pathGraph.IsBranch(first))
+            {
+                reason = "Jump is unavailable when the next step is a branch.";
+                return false;
+            }
+
+            if (_grid.IsWall(first))
+            {
+                reason = "A wall blocks the jump.";
+                return false;
+            }
+
+            var firstEnemy = GetEnemiesAt(first);
+            if (firstEnemy.Count > 0 && firstEnemy[0].Data != null && !firstEnemy[0].Data.CanBeJumpedOver)
+            {
+                reason = "A flying enemy blocks the jump.";
+                return false;
+            }
+
+            if (!_pathGraph.TryGetSingleForward(first, out var second))
+            {
+                reason = "The jump has no landing path.";
+                return false;
+            }
+
+            if (!_pathGraph.IsPath(second) || _grid.IsHole(second) || _grid.IsWall(second))
+            {
+                reason = "The landing tile is not valid.";
+                return false;
+            }
+
+            foreach (var enemy in GetEnemiesAt(second))
+            {
+                if (enemy.Data != null && enemy.Data.BlocksMovement)
+                {
+                    reason = "A blocking enemy occupies the landing tile.";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void StartLinearJump()
+        {
+            if (!CanLinearJump(out _) ||
+                !TryGetLinearStep(_player.Position, out var first) ||
+                !_pathGraph.TryGetSingleForward(first, out var landing))
+            {
+                FinishCardPlay();
+                return;
+            }
+
+            _linearMovementActive = true;
+            _linearMovementRemaining = 0;
+            EnterTile(landing);
+
+            if (_runOver || _levelComplete || Phase == TurnPhase.LevelRetry ||
+                Phase == TurnPhase.Reward || Phase == TurnPhase.Loading)
+            {
+                ResetLinearState(false);
+                return;
+            }
+
+            ResolveLinearStop(landing);
+        }
+
+        private void ContinueLinearMovement()
+        {
+            while (_linearMovementRemaining > 0)
+            {
+                if (_runOver || _levelComplete || Phase == TurnPhase.LevelRetry)
+                {
+                    ResetLinearState(false);
+                    return;
+                }
+
+                if (_pathGraph.IsBranch(_player.Position) && !_branchDirection.HasValue)
+                {
+                    Phase = TurnPhase.AwaitingPathChoice;
+                    PhaseChanged?.Invoke(Phase);
+                    return;
+                }
+
+                if (!TryGetLinearStep(_player.Position, out var next))
+                {
+                    FinishLinearMovement();
+                    return;
+                }
+
+                if (_grid.IsHole(next))
+                {
+                    KillOnHole();
+                    return;
+                }
+
+                if (_grid.IsWall(next))
+                {
+                    FinishLinearMovement();
+                    return;
+                }
+
+                _linearMovementRemaining--;
+                EnterTile(next);
+
+                if (_runOver || _levelComplete || Phase == TurnPhase.LevelRetry ||
+                    Phase == TurnPhase.Reward || Phase == TurnPhase.Loading)
+                {
+                    ResetLinearState(false);
+                    return;
+                }
+
+                if (_pathGraph.IsTerminalExit(next))
+                {
+                    ResetLinearState(false);
+                    RequestExit();
+                    return;
+                }
+
+                if (TryGetCurrentExit(out var exit) && !_forfeitedExits.Contains(next))
+                {
+                    _pendingExit = exit;
+                    _hasPendingExit = true;
+                    Phase = TurnPhase.AwaitingExitChoice;
+                    PhaseChanged?.Invoke(Phase);
+                    return;
+                }
+
+                if (_pathGraph.IsBranch(next))
+                {
+                    _branchDirection = null;
+                    Phase = TurnPhase.AwaitingPathChoice;
+                    PhaseChanged?.Invoke(Phase);
+                    return;
+                }
+            }
+
+            FinishLinearMovement();
+        }
+
+        private void ResolveLinearStop(GridCoord coord)
+        {
+            if (_pathGraph.IsTerminalExit(coord))
+            {
+                ResetLinearState(false);
+                RequestExit();
+                return;
+            }
+
+            if (TryGetCurrentExit(out var exit) && !_forfeitedExits.Contains(coord))
+            {
+                _pendingExit = exit;
+                _hasPendingExit = true;
+                Phase = TurnPhase.AwaitingExitChoice;
+                PhaseChanged?.Invoke(Phase);
+                return;
+            }
+
+            if (_pathGraph.IsBranch(coord))
+            {
+                _branchDirection = null;
+                Phase = TurnPhase.AwaitingPathChoice;
+                PhaseChanged?.Invoke(Phase);
+                return;
+            }
+
+            FinishLinearMovement();
+        }
+
+        private void FinishLinearMovement()
+        {
+            _linearMovementActive = false;
+            _linearMovementRemaining = 0;
+            if (Phase == TurnPhase.AwaitingPathChoice || Phase == TurnPhase.AwaitingExitChoice)
+            {
+                Phase = TurnPhase.AwaitingCard;
+            }
+
+            FinishCardPlay();
+        }
+
+        public bool ChooseBranch(GridCoord next)
+        {
+            if (Phase != TurnPhase.AwaitingPathChoice || _player == null || _pathGraph == null)
+            {
+                return false;
+            }
+
+            if (!IsForwardOption(_player.Position, next))
+            {
+                return false;
+            }
+
+            _branchDirection = next;
+            if (_linearMovementActive && _linearMovementRemaining > 0)
+            {
+                ContinueLinearMovement();
+            }
+            else
+            {
+                FinishLinearMovement();
+            }
+
+            return true;
+        }
+
+        public bool ContinuePastExit()
+        {
+            if (Phase != TurnPhase.AwaitingExitChoice || !_hasPendingExit || _player == null)
+            {
+                return false;
+            }
+
+            _forfeitedExits.Add(_player.Position);
+            _hasPendingExit = false;
+            _pendingExit = default;
+
+            if (_linearMovementActive && _linearMovementRemaining > 0)
+            {
+                ContinueLinearMovement();
+            }
+            else
+            {
+                FinishLinearMovement();
+            }
+
+            return true;
+        }
+
+        public void RetryCurrentLevel()
+        {
+            RetryLevel();
+        }
+
+        public bool EnterPendingExit()
+        {
+            if (Phase != TurnPhase.AwaitingExitChoice || !_hasPendingExit)
+            {
+                return false;
+            }
+
+            var pending = _pendingExit;
+            var wasActive = _linearMovementActive;
+            var remaining = _linearMovementRemaining;
+            _hasPendingExit = false;
+            _pendingExit = default;
+            _linearMovementActive = false;
+            _linearMovementRemaining = 0;
+
+            if (RequestExit())
+            {
+                return true;
+            }
+
+            _pendingExit = pending;
+            _hasPendingExit = true;
+            _linearMovementActive = wasActive;
+            _linearMovementRemaining = remaining;
+            Phase = TurnPhase.AwaitingExitChoice;
+            return false;
+        }
+
+        private bool TryGetLinearStep(GridCoord from, out GridCoord next)
+        {
+            next = default;
+            if (_pathGraph == null)
+            {
+                return false;
+            }
+
+            if (_pathGraph.IsBranch(from))
+            {
+                if (!_branchDirection.HasValue || !IsForwardOption(from, _branchDirection.Value))
+                {
+                    return false;
+                }
+
+                next = _branchDirection.Value;
+                return true;
+            }
+
+            return _pathGraph.TryGetSingleForward(from, out next);
+        }
+
+        private bool IsForwardOption(GridCoord from, GridCoord next)
+        {
+            if (_pathGraph == null)
+            {
+                return false;
+            }
+
+            foreach (var option in _pathGraph.GetForwardOptions(from))
+            {
+                if (option == next)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private EnemyState FindLinearDamageTarget(int range)
+        {
+            if (_pathGraph == null || _player == null)
+            {
+                return null;
+            }
+
+            if (range <= 0)
+            {
+                var sameTile = GetEnemiesAt(_player.Position);
+                return sameTile.Count > 0 ? sameTile[0] : null;
+            }
+
+            var coord = _player.Position;
+            for (var step = 1; step <= range; step++)
+            {
+                if (!TryGetLinearStep(coord, out var next))
+                {
+                    return null;
+                }
+
+                coord = next;
+                var enemies = GetEnemiesAt(coord);
+                if (enemies.Count > 0)
+                {
+                    return enemies[0];
+                }
+
+                if (_pathGraph.IsBranch(coord))
+                {
+                    return null;
+                }
+            }
+
+            return null;
+        }
+
+        private void KillOnHole()
+        {
+            DamagePlayer(Math.Max(1, _player.Hp), DamageSource.Other);
         }
 
         private bool HasAnyValidTarget(CardInstance card)
@@ -683,7 +1288,7 @@ namespace DiceDrive.Turn
             for (var i = 1; i < path.Tiles.Count; i++)
             {
                 EnterTile(path.Tiles[i]);
-                if (_runOver || _levelComplete)
+                if (_runOver || _levelComplete || Phase == TurnPhase.LevelRetry || Phase == TurnPhase.AwaitingRoll)
                 {
                     return;
                 }
@@ -776,11 +1381,17 @@ namespace DiceDrive.Turn
                 return;
             }
 
-            _grid.Get(_player.Position).HasPlayer = false;
+            var previous = _player.Position;
+            _grid.Get(previous).HasPlayer = false;
             _player.Position = coord;
             _grid.Get(coord).HasPlayer = true;
 
-            if (_grid.Get(coord).BaseType == TileType.Treasure)
+            if (previous != coord && _pathGraph != null && _pathGraph.IsBranch(previous))
+            {
+                _branchDirection = null;
+            }
+
+            if (_map.TryGetTreasureAt(coord, out _))
             {
                 OpenTreasure(coord);
             }
@@ -788,22 +1399,13 @@ namespace DiceDrive.Turn
             if (_grid.IsDamaging(coord))
             {
                 DamagePlayer(1, DamageSource.DamagingTile);
-                if (_runOver)
+                if (_runOver || Phase == TurnPhase.LevelRetry || Phase == TurnPhase.AwaitingRoll)
                 {
                     return;
                 }
             }
 
             ResolveEntry(coord);
-            if (_runOver)
-            {
-                return;
-            }
-
-            if (_grid.Get(coord).BaseType == TileType.Exit)
-            {
-                CompleteLevel();
-            }
         }
 
         private void ResolveEntry(GridCoord coord)
@@ -826,7 +1428,7 @@ namespace DiceDrive.Turn
 
                     DamagePlayer(enemy.Data.damage, DamageSource.Enemy);
                     EnemyAttacked?.Invoke(enemy, enemy.Data.damage, EnemyAttackTiming.Entry);
-                    if (_runOver)
+                    if (_runOver || Phase == TurnPhase.LevelRetry || Phase == TurnPhase.AwaitingRoll)
                     {
                         return;
                     }
@@ -865,7 +1467,7 @@ namespace DiceDrive.Turn
 
                 DamagePlayer(enemy.Data.damage, DamageSource.Enemy);
                 EnemyAttacked?.Invoke(enemy, enemy.Data.damage, EnemyAttackTiming.TurnStart);
-                if (_runOver)
+                if (_runOver || Phase == TurnPhase.LevelRetry || Phase == TurnPhase.AwaitingRoll)
                 {
                     return;
                 }
@@ -1068,16 +1670,10 @@ namespace DiceDrive.Turn
             _player.Hp = Math.Max(0, _player.Hp - amount);
             PlayerDamaged?.Invoke(amount, source);
 
-            if (_player.Hp > 0)
+            if (_player.Hp <= 0)
             {
-                return;
+                RetryLevel();
             }
-
-            _runOver = true;
-            _torch?.Pause();
-            Phase = TurnPhase.RunOver;
-            PhaseChanged?.Invoke(Phase);
-            RunEnded?.Invoke();
         }
 
         private void DamageEnemy(EnemyState enemy, int damage)
@@ -1109,47 +1705,50 @@ namespace DiceDrive.Turn
                 return;
             }
 
-            TreasureSpawn? found = null;
-            if (_map.treasureSpawns != null)
-            {
-                foreach (var spawn in _map.treasureSpawns)
-                {
-                    if (spawn.coord == coord)
-                    {
-                        found = spawn;
-                        break;
-                    }
-                }
-            }
-
-            if (!found.HasValue)
+            if (!_map.TryGetTreasureAt(coord, out var treasure))
             {
                 return;
             }
 
-            var treasure = found.Value;
             _openedTreasure.Add(coord);
-            _grid.SetBaseType(coord, TileType.Floor);
-            Gold += treasure.gold;
-
-            var added = new List<CardInstance>();
-            if (treasure.cards != null)
+            if (_grid.InBounds(coord))
             {
-                foreach (var data in treasure.cards)
-                {
-                    if (data == null)
-                    {
-                        continue;
-                    }
-
-                    var card = new CardInstance(data);
-                    _deck.Add(card);
-                    _levelStartDeckOrder.Add(data);
-                    added.Add(card);
-                }
+                _grid.SetBaseType(coord, TileType.Floor);
             }
 
-            TreasureOpened?.Invoke(coord, added, treasure.gold);
+            var gold = treasure.data != null ? treasure.data.gold : treasure.gold;
+            Gold += gold;
+
+            if (treasure.data != null && treasure.data.heal > 0 && _player != null)
+            {
+                _player.Hp = Math.Min(_player.MaxHp, _player.Hp + treasure.data.heal);
+            }
+
+            var added = new List<CardInstance>();
+            var cardData = treasure.data != null
+                ? treasure.data.Draw(_random)
+                : new List<CardData>(treasure.cards ?? Array.Empty<CardData>());
+
+            foreach (var data in cardData)
+            {
+                if (data == null)
+                {
+                    continue;
+                }
+
+                if (_map.IsLinear && !MapValidator.IsLinearAllowed(data))
+                {
+                    continue;
+                }
+
+                var card = new CardInstance(data);
+                _deck.Add(card);
+                _levelStartDeckOrder.Add(data);
+                _runDeckOrder.Add(data);
+                added.Add(card);
+            }
+
+            TreasureOpened?.Invoke(coord, added, gold);
         }
 
         private void CompleteLevel()
@@ -1168,21 +1767,24 @@ namespace DiceDrive.Turn
 
         private void RetryLevel()
         {
-            if (_retryInProgress || _runOver)
+            if (_retryInProgress)
             {
                 return;
             }
 
             _retryInProgress = true;
+            ResetLinearState(true);
             Phase = TurnPhase.LevelRetry;
             PhaseChanged?.Invoke(Phase);
             LevelRetried?.Invoke();
 
             _torch?.Pause();
-            _player.Hp = _entryHp;
+            _runOver = false;
+            _player.Hp = Math.Max(1, _entryHp);
             BuildWorld();
 
             _deck = new Deck(CreateInstances(_levelStartDeckOrder));
+            _deck.Shuffle(_random);
             _hand = CreateHand();
             _spent = new SpentPile();
             _dice = CreateDiceSet();
@@ -1198,6 +1800,151 @@ namespace DiceDrive.Turn
             DrawCards(_config.handSize, false);
             BeginTurn();
             _retryInProgress = false;
+        }
+
+        public bool TryGetCurrentExit(out ExitSpawn exit)
+        {
+            if (_map == null || _player == null)
+            {
+                exit = default;
+                return false;
+            }
+
+            if (_forfeitedExits.Contains(_player.Position))
+            {
+                exit = default;
+                return false;
+            }
+
+            return _map.TryGetExitAt(_player.Position, out exit);
+        }
+
+        public bool RequestExit()
+        {
+            if (_transitionInProgress || Phase == TurnPhase.Reward || Phase == TurnPhase.Loading ||
+                Phase == TurnPhase.LevelRetry || _rewardSelection != null)
+            {
+                return false;
+            }
+
+            if (!TryGetCurrentExit(out var exit))
+            {
+                return false;
+            }
+
+            var destination = exit.destination.ResolveMap();
+            if (destination == null)
+            {
+                UnityEngine.Debug.LogWarning("Exit has no valid destination map.");
+                return false;
+            }
+
+            ResetLinearState(false);
+            _pendingDestination = destination;
+            _pendingTheme = exit.destination.ResolveTheme();
+            _rewardSelection = new RewardSelection(_map.rewardPool, _random);
+            _player.Hp = Math.Min(_player.MaxHp, _player.Hp + 1);
+            _torch?.Pause();
+            Phase = TurnPhase.Reward;
+            PhaseChanged?.Invoke(Phase);
+            return true;
+        }
+
+        public bool RerollReward(int index)
+        {
+            if (_rewardSelection == null)
+            {
+                return false;
+            }
+
+            var changed = _rewardSelection.Reroll(index);
+            if (changed)
+            {
+                PhaseChanged?.Invoke(Phase);
+            }
+
+            return changed;
+        }
+
+        public bool ConfirmReward(int index)
+        {
+            if (_rewardSelection == null || Phase != TurnPhase.Reward)
+            {
+                return false;
+            }
+
+            if (!_rewardSelection.TryChoose(index, out var tuple))
+            {
+                return false;
+            }
+
+            foreach (var card in tuple.ToArray())
+            {
+                if (card == null || (_map.IsLinear && !MapValidator.IsLinearAllowed(card)))
+                {
+                    continue;
+                }
+
+                _runDeckOrder.Add(card);
+                _levelStartDeckOrder.Add(card);
+            }
+
+            _rewardSelection = null;
+            Phase = TurnPhase.Loading;
+            PhaseChanged?.Invoke(Phase);
+            return true;
+        }
+
+        public bool CompleteTransition()
+        {
+            if (Phase != TurnPhase.Loading || _pendingDestination == null)
+            {
+                return false;
+            }
+
+            _transitionInProgress = true;
+            _map = _pendingDestination;
+            _pendingDestination = null;
+            _pendingTheme = null;
+            _levelNumber = Math.Max(1, _levelNumber + 1);
+            _openedTreasure.Clear();
+            _levelComplete = false;
+            _runOver = false;
+            _retryInProgress = false;
+            ResetLinearState(true);
+
+            BuildWorld();
+            _levelStartDeckOrder = BuildLevelDeck(_runDeckOrder, _map);
+
+            _deck = new Deck(CreateInstances(_levelStartDeckOrder));
+            _deck.Shuffle(_random);
+            _hand = CreateHand();
+            _spent = new SpentPile();
+            _dice = CreateDiceSet();
+            _turnNumber = 0;
+            _currentRoll = 0;
+            _diceRolledThisTurn = 0;
+            _freeRerollsRemaining = Math.Max(0, _config.freeRerollsPerMap);
+            _entryHp = _player.Hp;
+
+            if (_torch == null)
+            {
+                _torch = new TorchTimer(_config.torchSeconds);
+            }
+            else
+            {
+                _torch.Reset(_config.torchSeconds);
+            }
+
+            _torch.Burnout -= OnTorchBurnout;
+            _torch.Burnout += OnTorchBurnout;
+            _torch.Start();
+
+            DrawCards(_config.handSize, false);
+            BeginTurn();
+            _transitionInProgress = false;
+            LevelTransitioned?.Invoke(_map);
+            return true;
         }
 
         private void OnTorchBurnout()

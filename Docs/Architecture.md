@@ -137,11 +137,73 @@ blocks, melee does not. `canBeJumpedOver` is true except for Flying;
 ### MapData
 | Field | Type |
 |-------|------|
-| width / height | int |
-| tiles | flat `TileType[]` (row-major) or a Tilemap import |
-| playerSpawn, exitPos | coordinate |
-| enemySpawns | `EnemySpawn[] { EnemyData data; Vector2Int coord; }` |
-| treasureSpawns | `TreasureSpawn[] { Vector2Int coord; int gold; CardData[] cards; }` |
+| schemaVersion / mapName | int / string |
+| mapKind | `Grid` or `Linear` |
+| width / height | int, 4 to 64 per side |
+| tiles | flat `TileType[]` terrain, row-major |
+| pathTiles | `bool[]` path mask for Linear maps; ignored by Grid maps |
+| branchTiles | `GridCoord[]` marked branch junctions on Linear maps |
+| hasPlayerSpawn / playerSpawn | bool / coordinate |
+| exits | `ExitSpawn[] { GridCoord coord; MapDestination destination; }` |
+| enemySpawns | `EnemySpawn[] { EnemyData data; GridCoord coord; }` |
+| treasureSpawns | `TreasureSpawn[] { GridCoord coord; TreasureData data; }` |
+| rewardPool | `Card3Tuple[]` (at least six for the reward screen) |
+| theme | `ThemeData` (optional) |
+
+Legacy `exitPos`, `TreasureSpawn.gold`, and `TreasureSpawn.cards` remain for
+compatibility with old assets. New maps use the object layer.
+
+**Map kind rules**
+
+- **Grid:** the whole terrain array is traversable. Walk uses `Pathfinder` and
+  the player selects a destination.
+- **Linear:** only `pathTiles` are traversable. The map has one start at a path
+  endpoint; every other dead end is a terminal exit. Branch tiles are marked.
+  Merges are inferred. A path tile may carry one overlay or marker, not several.
+  Walls and sand are invalid.
+- **Linear card deck:** the level deck is built from the run deck with
+  `RemoveObstacle`, `CrossDamage`, and `Flood` filtered out. The run deck keeps
+  them for the next Grid map. Linear treasure and reward pools are restricted to
+  Walk, Jump, Damage, Heal, and Draw.
+
+### PathGraph
+
+`PathGraph` is built from `MapData` at level start. It is a pure C# helper in
+`Grid/MapData.cs`.
+
+- Stores 4-way path neighbors, forward edges, incoming edges, terminal exits,
+  reachability, and a directed-cycle flag.
+- Seeds distance-to-terminal-exit from dead-end exits.
+- Walks forward from the start. A marked branch sends every candidate forward.
+  An unmarked junction is a merge: only lower-distance neighbors are forward.
+  This infers merges without a merge marker.
+- `GetForwardOptions` returns the next path steps. `GetIncomingOptions` exposes
+  merges for validation. `IsTerminalExit` identifies auto-take exits.
+- The builder and `MapValidator` use the same graph, so authoring preview,
+  validation, and runtime agree.
+
+### TreasureData
+| Field | Type |
+|-------|------|
+| shortCode / sprite | string / Sprite |
+| gold / heal / cardCount | int |
+| cards | `WeightedCard[] { CardData card; int weight; }` |
+
+When a treasure opens, the game draws `cardCount` cards with replacement from
+the weighted list, grants gold, and heals up to max HP. Claimed cards join the
+run deck.
+
+### Card3Tuple
+`Card3Tuple { CardData a; CardData b; CardData c; }` with an unordered multiset
+comparer. The map reward pool holds tuples; the reward screen shows three
+options, rerolls each once for an unseen tuple, and grants the chosen three
+cards.
+
+### Exit, destination, and map view
+`ExitSpawn { GridCoord coord; MapDestination destination; }`.
+`MapDestination { DestinationKind kind; MapData map; ThemeData theme; GameObject prefab; }`.
+A prefab destination must contain a `MapView` with a `MapData`; the prefab is a
+visual shell and `MapData` drives gameplay.
 
 ### RunConfig
 | Field | Type |
@@ -177,8 +239,9 @@ Hand            — cards in hand; cap 8; discards the oldest on overflow
 SpentPile       — played and overflow cards; does not return this level
 Grid            — Tile[,]; occupancy; IsWalkable(coord); tile predicates
 Tile            — base TileType, sand overlay, enemy occupants, player occupant
-Pathfinder      — weighted BFS/Dijkstra; returns PathResult
-GameSession     — concrete turn loop; roll, play, draw, retry, free-reroll budget
+Pathfinder      — weighted BFS/Dijkstra; returns PathResult for Grid maps
+PathGraph       — Linear path topology: forward edges, branches, inferred merges, terminal exits
+GameSession     — run-scoped turn loop; level entry, transition, reward selection, failure reset, free-reroll budget; owns resumable Linear movement
 TorchTimer      — real-time countdown; pauses with the menu; raises Burnout
 ICardEffect     — planned strategy interface; current code uses a switch
 PlayerState     — hp, position
@@ -205,7 +268,16 @@ events.
 `Steps` is the movement cost: a diagonal step costs 2, an orthogonal step costs 1.
 The pathfinder prefers a safe path within range. If none exists, it returns the
 lowest-HP damaging path within range. If neither exists, it returns
-`Unreachable`.
+`Unreachable`. This is the Grid map movement path.
+
+**Linear movement** does not use `Pathfinder`. `GameSession` advances one path
+step at a time with `PathGraph`. It stores the remaining steps, the pending
+branch/exit prompt, and the chosen branch direction. Walk spends `CurrentRoll`
+steps; Jump spends two path steps. A hole kills and resets the level. Interior
+exits and branch tiles pause the movement; the phase becomes
+`AwaitingExitChoice` or `AwaitingPathChoice`. The torch keeps ticking in both
+phases. Choosing a branch or Continue resumes the remaining steps; Enter starts
+the reward transition.
 
 **Deck and Hand rules**
 
@@ -252,6 +324,10 @@ Effect implementations:
   landing in a slow enemy's range telegraphs it. Landing on a ranged enemy tile
   is blocked.
 - `DamageEffect` — damage an enemy on the target tile within melee range.
+- **Linear variants** — `GameSession.PlayCardAuto` is the click-to-play entry
+  point. Walk/Jump use the forward path, Damage uses
+  `FindLinearDamageTarget(range)` along the chosen forward direction, and
+  Heal/Draw are self. `CanPlayAuto` is the linear playability check.
 - `HealEffect` — heal self.
 - `RemoveObstacleEffect` — remove a damaging obstacle on an adjacent tile;
   walls and holes are unaffected.
@@ -273,7 +349,14 @@ States:
    After it, paid rerolls cost 1 HP and unlock on map 2. A paid reroll at 1 HP
    kills the player. On map 1, an unplayable die is skipped. After a reroll,
    return to ChooseCard.
-5. **ResolveCard** — execute the effect; check win/lose.
+5. **ResolveCard** — execute the effect; check win/lose. On a Linear map, Walk
+   and Jump can pause here.
+   - **AwaitingPathChoice** — a branch tile was reached. Show two or three arrow
+     options. Choosing stores the direction for the next movement and resumes
+     any remaining steps. The choice is locked until the player moves.
+   - **AwaitingExitChoice** — an interior exit was reached. Continue forfeits the
+     exit and resumes; Enter starts the reward transition. The torch keeps
+     ticking in both prompt phases.
 6. **NextDieOrEndTurn** — if dice remain, go to RollDie; otherwise end the turn.
 7. **DrawPhase** — draw 1 card per die rolled. Kill draws happen immediately
    during ResolveCard (1 card; 2 for a tank).
@@ -283,7 +366,8 @@ Outside the turn machine:
 - **TorchTimer** ticks in real time. On zero it raises `Burnout`; the level
   retries (HP, deck, hand, enemies, treasure, torch).
 - **DeckExhausted** also retries the level.
-- **HP 0** ends the run.
+- **HP 0** resets the current level to its entry state (entry HP, restocked deck and
+  hand, free reroll, torch, enemies, unopened treasure). It does not end the run.
 
 Transitions are validated by `GameSession`; illegal drops are rejected without
 state change. The concrete implementation is `Scripts/Turn/GameSession.cs`.
@@ -311,6 +395,10 @@ View flow for a card play:
    (unreachable) via `PathPreview`.
 3. Drop → `GameSession.PlayCard(card, coord)` → validates → runs effect.
 4. Simulation publishes events → views animate (DOTween) and update HUD.
+5. **Linear maps:** click → `QaCardView` → `QaBootstrap.PlayCardAuto` →
+   `GameSession.PlayCardAuto`. The movement pauses on a branch or interior exit
+   and `QaBootstrap` shows the arrow or Continue/Enter panel. Neither prompt uses
+   drag targeting.
 
 Enemy attack flow:
 1. Player enters a fast enemy's range → `EnemyAttacked(timing: Entry)`.
@@ -339,9 +427,9 @@ Card selection UI flow:
 | Turn | state machine, phase orchestration, turn flow, torch timer |
 | Dice | dice data, rolling, set management, roll events, rerolls |
 | Cards | card data, deck/hand/spent pile, effect strategies, card view model and selection |
-| Grid | tile grid, terrain rules, occupancy, pathfinding |
+| Grid | tile grid, terrain rules, occupancy, pathfinding, Grid/Linear map data, path graph |
 | Entities | player/enemy state, health/damage, attack/body types, contact and telegraph |
-| Interaction | drag & drop, target selection, range highlighting, path preview |
+| Interaction | drag & drop and path preview for Grid; click-to-play, branch arrows, and exit prompt for Linear |
 | UI | card hand, card views, hand layout, reveal, HUD, TMP |
 | Audio | FMOD settings, Master bank, card-selection event adapter |
 
@@ -363,7 +451,7 @@ Card selection UI flow:
 - **Enemy tests** — fast attack on entry; slow attack at next `TurnStart`;
   leaving range cancels; staying in range attacks every turn; tank/flying
   traits; layered occupancy; fast enemy re-entry.
-- **Deck growth tests** — treasure adds 1–2 cards; completion merges them into
+- **Deck growth tests** — treasure grants cards from `TreasureData`; completion merges them into
   the run deck; retry keeps claimed cards and removes opened treasure.
 - **Retry tests** — retry HP equals level-entry HP; opened treasure does not
   respawn; no duplicate claimed cards.
@@ -386,7 +474,7 @@ Card selection UI flow:
 - **Real-time torch in a turn-based game** — the timer must pause cleanly with
   the menu, survive scene reloads, and not tick during a level retry. Use
   `Time.unscaledDeltaTime` or a dedicated clock.
-- **38×38 pathfinding** — weighted BFS/Dijkstra must run per drag. Cache the
+- **32×32 pathfinding** — weighted BFS/Dijkstra must run per drag. Cache the
   grid and invalidate on tile change; preview only the reachable region.
 - **DOTween has no `.asmdef`** — lives in `Assembly-CSharp-firstpass`; to use it
   from `_Game.Runtime`, add `DOTween.asmdef` (+ a `DOTween.Editor` asmdef) or
@@ -421,6 +509,19 @@ Card selection UI flow:
   removed. Opened treasure is consumed permanently; claimed cards are kept.
 - **Enemy speed** — fast enemies attack only on entry; slow enemies attack at
   `TurnStart` while the player stays. Tune the speed mix and the re-entry rule.
+- **Linear path inference** — merges are inferred from branch markers and
+  distance-to-terminal-exit. Missing branch markers, accidental orthogonal
+  touching, disconnected path tiles, and dead ends without exits are soft
+  validation alerts. Runtime still needs the prompt/retry guards.
+- **Resumable Linear movement** — Walk/Jump can pause mid-card. The pending
+  movement must be cancelled by retry, transition, or burnout; the torch keeps
+  running during branch and exit prompts.
+- **Linear deck filtering** — complex cards are removed only from the level deck.
+  The run deck keeps them, so transition and retry must rebuild the level deck
+  from the run deck instead of mutating the run deck.
+- **Large maps** — 64×64 is an authoring cap. Grid rendering is per-cell; Linear
+  rendering skips non-path tiles. Measure tile counts, preview rebuilds, and
+  camera framing before shipping large maps.
 
 ---
 

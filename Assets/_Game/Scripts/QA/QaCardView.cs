@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace DiceDrive.QA
 {
-    public sealed class QaCardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public sealed class QaCardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
     {
         private QaBootstrap _bootstrap;
         private CardInstance _card;
@@ -50,9 +50,20 @@ namespace DiceDrive.QA
             }
         }
 
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left ||
+                _bootstrap == null || !_bootstrap.IsLinearMap || !_bootstrap.IsCardPlayable(_card))
+            {
+                return;
+            }
+
+            _bootstrap.PlayCardAuto(_card);
+        }
+
         public void OnBeginDrag(PointerEventData eventData)
         {
-            if (_bootstrap == null || !_bootstrap.IsCardPlayable(_card))
+            if (_bootstrap == null || _bootstrap.IsLinearMap || !_bootstrap.IsCardPlayable(_card))
             {
                 return;
             }

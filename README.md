@@ -19,11 +19,30 @@ plates — only if you are brave enough.
 
 You hold a hand of consumable cards. Each turn you roll your dice **one at a
 time**, and the number you roll unlocks which card types you may play. Play one
-card per die. Move across the grid, jump holes, fight or avoid enemies, and
-reach the exit. A real-time torch burns down while you decide.
+card per die. Move across the grid or follow a painted path, jump holes, fight or
+avoid enemies, and reach the exit. A real-time torch burns down while you decide.
 
-If the torch burns out or your deck empties, you **retry the level**. If your HP
-reaches 0, the **run ends**.
+If the torch burns out, your deck empties, or your HP reaches 0, you **reset the
+level** to the state you entered it with. The run continues.
+
+---
+
+## Map Types
+
+Dice-Drive has two map kinds. Both use the same cards, dice, enemies, torch, and
+failure rules. Maps are **4 to 64 tiles per side**.
+
+- **Grid maps** are open tactical boards. You drag Walk to a destination and the
+  game auto-paths. Holes are barriers that need a Jump.
+- **Linear maps** are painted one-way paths on the same N×M canvas. You only move
+  forward along the path. Walk spends the full roll, holes are lethal, and Jump
+  crosses two path steps. At a marked branch, pick one of the arrow buttons.
+  Merges are automatic. Interior exits pause the walk and ask Continue or Enter;
+  the final exit takes itself.
+
+On a linear map you click a card instead of dragging it. Walk and Jump resolve
+forward automatically, Damage hits the first enemy ahead within range, and Heal
+and Draw are self. Complex cards wait for the next grid map.
 
 ---
 
@@ -43,9 +62,10 @@ after the free reroll, the die is skipped.
 
 Normal cards (Walk) are always playable. Every other type needs its **lucky
 number**. Playable cards glow; locked cards show the number they need. Cards are
-consumed when played, and the deck is finite. Treasure opens once and adds 1–2
-cards to the current level deck; the claimed cards are kept if you retry, but the
-opened tile is gone. Completing a level grants a pack.
+consumed when played, and the deck is finite. Treasure opens once and grants
+cards from its `TreasureData` asset, plus gold and heal; the claimed cards are
+kept if you retry, but the opened tile is gone. Taking an exit opens a three-card
+reward screen.
 
 <!-- SCREENSHOT: hand of cards with playable cards highlighted -->
 
@@ -57,9 +77,11 @@ Walk up to the rolled die value of movement. Diagonal steps cost 2; orthogonal s
 - **Orange/red** — crosses damaging tiles or melee enemies; you take HP damage.
 - **Grey** — unreachable.
 
-Holes need a **Jump**. Enemies have a speed: **fast** enemies attack when you
-enter their range; **slow** enemies attack at the start of the next turn if you
-stay in range. Melee range is the enemy's tile; ranged range is adjacent, including diagonals.
+On a **grid map**, holes are barriers and need a **Jump**. On a **linear map**,
+walking into a hole kills you and resets the level; use Jump to cross it. Enemies
+have a speed: **fast** enemies attack when you enter their range; **slow** enemies
+attack at the start of the next turn if you stay in range. Melee range is the
+enemy's tile; ranged range is adjacent, including diagonals.
 
 <!-- SCREENSHOT: dragging a card, valid tiles highlighted -->
 
@@ -102,19 +124,28 @@ Normal cards are **always** playable. Every other class answers to a single
 
 Reach the **exit** of each dungeon before the torch burns out.
 
-- **Torch burnout** and an **empty deck** retry the level. A retry restores HP
-  to the value you entered the level with, not full. **HP 0** ends the run.
-- **Treasure** opens once and gives 1–2 random cards and gold. Claimed cards are
-  kept on a retry; the opened tile is gone. Gold's use is TBD.
+- **Torch burnout**, an **empty deck**, and **HP 0** reset the level. The reset
+  restores HP to the value you entered the level with, restocks the deck and hand,
+  resets the free reroll and torch, and respawns enemies and unopened treasure. It is
+  not a run loss.
+- **Treasure** opens once and grants cards from its `TreasureData` asset, plus
+  gold and heal. Claimed cards are kept on a retry; the opened tile is gone.
+  Gold's use is TBD.
 - **Enemies** hold their ground. **Fast** enemies attack when you enter their
   range. **Slow** enemies attack at the start of the next turn if you stay in
   range. Melee range is the enemy's tile; ranged range is adjacent, including diagonals. Tank enemies
   have 2 HP and draw 2 on death; flying enemies ignore sand and cannot be jumped
   over.
-- **Terrain:** holes need a Jump or sand; damaging tiles cost HP; walls block.
-- **Between maps** choose 1 of 3 packs (1–3 cards), then 1 of 3 bonuses (+1 max
-  HP and full heal / remove 1–3 cards / effect TBD). Each set can be rerolled
-  once. Removal comes from the bonus.
+- **Terrain:** on grid maps, holes need a Jump or sand, damaging tiles cost HP,
+  and walls block. Linear maps have no walls or sand, and a hole is lethal to
+  Walk.
+- **Between maps** use an exit. On a grid map, stand on a numbered exit and use
+  **Take Exit**. On a linear map, an interior exit asks Continue or Enter; the
+  final exit takes itself. Choose one of three three-card reward options, reroll
+  each option once, then confirm. The destination map starts in the same scene.
+  HP, max HP, gold, owned cards, and the level number carry; the deck restocks,
+  the hand resets, the torch resets, and the old map is discarded. The bonus and
+  meta stage is deferred.
 
 Get stronger. Go deeper. Reach the exit.
 

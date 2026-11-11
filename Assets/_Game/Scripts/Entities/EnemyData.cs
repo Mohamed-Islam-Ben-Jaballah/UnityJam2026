@@ -25,6 +25,7 @@ namespace DiceDrive.Entities
     public sealed class EnemyData : ScriptableObject
     {
         public string enemyName;
+        public string shortCode;
         public EnemyAttackType attackType;
         public EnemySpeedType speedType;
         public EnemyBodyType bodyType;

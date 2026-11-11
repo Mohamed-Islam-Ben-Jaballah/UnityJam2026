@@ -2,7 +2,8 @@
 
 > Turn-based grid roguelike deck-builder. The player plays consumable cards whose
 > types are gated by dice rolls, races a real-time torch, and fights or avoids
-> stationary contact and ranged enemies to reach the exit.
+> stationary contact and ranged enemies to reach the exit. Maps are either open
+> grids or painted one-way paths.
 
 ---
 
@@ -10,8 +11,9 @@
 
 The player holds a hand of cards spanning several "types" (Normal, Elvish,
 Devilish, Sinitic, and special Loneliness cards). Each turn they roll their dice **one at a time**; the
-number rolled unlocks which card types may be played. They drag a playable card
-onto a tile of the map grid to move, jump, attack, heal, or reshape terrain.
+number rolled unlocks which card types may be played. On a grid map they drag a
+playable card onto a tile to move, jump, attack, heal, or reshape terrain. On a
+linear map they click the card and the action resolves along the painted path.
 The goal is to cross each map to the exit while a real-time torch burns down.
 Between maps the player chooses a small card pack and one bonus, growing the
 deck and the dice set.
@@ -49,11 +51,22 @@ deck and the dice set.
 [ Next map ]
 ```
 
+**Map types**
+
+- **Grid map** — the original open grid. The player chooses destinations and the
+  game auto-paths across the grid.
+- **Linear map** — a painted, one-way path on an N×M canvas. The player only
+  moves forward along the path and can choose a branch at marked junctions.
+
+Both map types use the same turn, deck, dice, torch, enemy, reward, and failure
+rules unless §5.0 says otherwise.
+
 **Failure states**
 
-- **Deck empty** → retry the current level. This is a level reset, not a run loss.
-- **Torch empty** → retry the current level. This is a level reset, not a run loss.
-- **Player HP 0** → the run ends.
+- **Deck empty** → reset the current level. This is a level reset, not a run loss.
+- **Torch empty** → reset the current level. This is a level reset, not a run loss.
+- **Player HP 0** → reset the current level to its entry state. This is a level reset,
+  not a run loss. The run continues.
 
 **Card lifecycle:** cards are consumable. A played card never returns this
 level. The discard pile is a spent pile. The level deck is finite and resets on
@@ -141,6 +154,11 @@ cards.
 | Sinitic (6) | Qiahni | Draw 2 cards | Self | — |
 | Loneliness (1) | Cale Azrael | Fire inverted cross: 1 damage in a + | Self (cross) | centered on player |
 
+On **Linear maps** the target column changes: Walk and Jump resolve forward along
+the path, Damage auto-targets the first enemy ahead within range, and Heal/Draw
+are self. RemoveObstacle, CrossDamage, and Flood are not shuffled into a Linear
+level deck. See §5.0.
+
 ### 4.3 Effect definitions
 
 - **Walk** — move up to `diceValue` movement points. The player picks the end
@@ -152,14 +170,26 @@ cards.
     enemy ranges. The player takes 1 HP per such tile entered.
   - A **grey path** is unreachable and cannot be selected.
   - Walk cannot cross holes. A hole requires a **Jump** card.
+- **Walk (Linear)** — no destination choice. The player clicks Walk and the
+  player moves the full rolled distance forward along the path. Branch and
+  interior-exit prompts pause the movement. Entering a hole kills the player and
+  resets the level. Enemy, damaging, and treasure effects resolve on each tile.
 - **Jump 1** — move to a tile exactly 2 tiles away in one of the 8 directions,
   skipping the tile(s) in between. Holes, damaging tiles, and non-flying enemies
   may be skipped. Walls and flying enemies block the jump. The landing tile must
   be walkable and free of blocking occupants. Landing in a fast enemy's range
   deals immediate damage; landing in a slow enemy's range telegraphs it.
+- **Jump (Linear)** — move exactly two path steps forward, following turns. Jump
+  is unavailable when the first step is a branch tile. It may cross holes,
+  damaging tiles, enemies, treasures, and interior exits. A landing on a branch
+  or exit uses that prompt.
 - **Deal 1 damage** — reduce an enemy's HP by 1 on the targeted tile. Melee
   range is adjacent. The player cannot normally target their own tile; see §10
   for the melee-enemy exception.
+- **Deal 1 damage (Linear)** — no target choice. Hit the first enemy ahead within
+  the card's range value, counted in path steps. Range 0 means the current tile.
+  Holes do not block the check. A branch ends the search unless the player is on
+  that branch with a direction chosen.
 - **Heal 1** — restore 1 HP up to max. Heilin has no extra cost beyond the card.
 - **Remove 1 damaging obstacle** — destroy a damaging obstacle on the targeted
   adjacent tile. Walls and holes are not affected.
@@ -184,6 +214,9 @@ Every card has a range defined relative to the player's current position:
 
 The `Ranged` card range type is removed. Only enemies have ranged attacks.
 
+On **Linear maps**, Move and Jump become forward-only actions and Melee damage
+uses path distance. The player never selects a destination or an enemy.
+
 ### 4.5 Hand, deck, and spent pile
 
 - Hand size at map start: **5**.
@@ -201,6 +234,71 @@ The `Ranged` card range type is removed. Only enemies have ranged attacks.
 
 ## 5. Grid and Terrain
 
+### 5.0 Map kinds (Grid and Linear)
+
+Every `MapData` asset has a `mapKind` of **Grid** or **Linear**.
+
+**Shared**
+
+- Width and height are each **4 to 64** cells. Non-square maps are allowed.
+- Terrain, enemies, treasures, exits, and reward pools use the same data assets
+  in both modes.
+- Enemies keep their melee/ranged, fast/slow, and body-type rules.
+
+**Grid maps**
+
+- The whole area is traversable terrain. Walls, sand, holes, and damaging tiles
+  follow §5.1–§5.2.
+- Walk uses 8-way auto-pathing with diagonal steps costing 2 and orthogonal
+  steps costing 1. The player chooses the destination tile.
+- Holes are barriers. A Jump crosses them; a Walk cannot enter them.
+- Standing on an exit shows the persistent Take Exit button.
+
+**Linear maps**
+
+- The map is an N×M canvas, but only painted **path tiles** are traversable.
+  The designer paints a path and leaves at least one empty cell between path
+  sections that are not meant to touch.
+- A path tile may hold at most one special overlay or marker: a hole, a damaging
+  tile, an enemy, a treasure, an exit, or a branch marker. Overlays do not stack.
+  Walls and sand are not allowed on linear maps.
+- Exactly one player start is placed at a path endpoint. Every other path dead
+  end must be a terminal exit.
+- **No backward movement.** Forward means the direction with the next path steps.
+- **Branches:** a path tile that splits has a branch marker. The game shows two
+  or three arrow buttons derived from the path graph. Choosing an arrow sets the
+  direction for the next movement. The choice is locked until the player moves.
+- **Merges:** a merge tile is not marked. The builder infers it from the path
+  graph and gives it one outgoing direction. A merge does not prompt.
+- **Walk:** the player does not choose a destination. On click, Walk spends the
+  full rolled distance moving forward along the path, step by step.
+  - Entering a **hole** kills the player and resets the level.
+  - Entering a **damaging** tile costs HP normally.
+  - Entering an **enemy** tile uses the normal enemy entry rules. Passing through
+    a slow enemy does not make it attack; a fast enemy attacks on entry.
+  - Reaching an **interior exit** pauses the walk and offers Continue or Enter.
+    Enter starts the normal exit transition. Continue forfeits that exit and
+    spends the remaining steps. If no steps remain, the player stays on the tile.
+  - Reaching a **terminal exit** takes it automatically.
+  - Reaching a **branch** pauses the walk until an arrow is chosen, then the
+    remaining steps continue along that branch.
+- **Jump:** Jump moves exactly two path steps, following turns. It is unavailable
+  when the first step is a branch tile. It may jump over holes, damaging tiles,
+  enemies, treasures, and interior exits. It lands normally, including branch or
+  exit prompts. Merges are allowed.
+- **Damage:** the player does not choose a target. Damage hits the first enemy
+  ahead within the card's range value, counted in path steps. Range 0 means the
+  player's current tile. Holes do not block the range. A branch ends the search
+  unless the player is already on that branch with a direction chosen.
+- **Heal and Draw:** self cards. Click to activate. They do not need a target.
+- **Card pool:** only Walk, Jump, Damage, Heal, and Draw are shuffled into a
+  linear level deck. Complex cards (RemoveObstacle, CrossDamage, Flood) stay in
+  the run deck and are shuffled again on the next Grid map. Linear treasure and
+  reward pools are restricted to the allowed cards.
+- **Camera:** a linear map frames the painted path bounds, not the whole canvas.
+- **Torch:** keeps running during branch and exit prompts. If it burns out, the
+  resumable movement is cancelled and the level resets.
+
 ### 5.1 Tile types
 
 | Tile | Walkable | Jumpable | Notes |
@@ -208,19 +306,21 @@ The `Ranged` card range type is removed. Only enemies have ranged attacks.
 | Floor | yes | yes | default |
 | Exit | yes | yes | win on enter |
 | Treasure | yes | yes | opens once; adds 1–2 random cards; gold/score on enter |
-| Hole | no | yes | filled by sand; no falling |
-| Sand | yes | yes | created by MelowCart (tree roots) |
+| Hole | no | yes | Grid: filled by sand, no falling. Linear: entering with Walk kills and resets. |
+| Sand | yes | yes | created by MelowCart (tree roots); Grid only |
 | Damaging | yes, at 1 HP per tile | yes | covered by sand |
-| Wall | no | no | cannot be destroyed |
+| Wall | no | no | cannot be destroyed; Grid only |
 
 There are only **three obstacle types**: holes, damaging obstacles, and walls.
+Linear maps use holes and damaging tiles, but not walls or sand.
 
 ### 5.2 Obstacle taxonomy
 
-1. **Hole** — not walkable; can be jumped over; filled by sand.
+1. **Hole** — Grid: not walkable, can be jumped over, filled by sand. Linear:
+   Walk into it kills and resets the level; Jump crosses it.
 2. **Damaging (thorns/spikes)** — walkable at 1 HP per tile; can be jumped over;
    covered by sand.
-3. **Wall/pillar** — not walkable; not jumpable; not destroyable.
+3. **Wall/pillar** — not walkable; not jumpable; not destroyable. Grid only.
 
 ### 5.3 Path preview
 
@@ -232,6 +332,11 @@ When a card is dragged, valid end tiles are highlighted:
 - **Telegraph** — slow enemy ranges are marked separately; entering them starts a
   slow attack.
 - **Grey** — unreachable; cannot be selected.
+
+This preview is for Grid maps. On Linear maps there is no destination drag:
+cards play on click, branch arrows choose the next path, and the exit prompt
+handles interior exits. Walk still advances step by step and applies each tile's
+effect.
 
 ---
 
@@ -282,10 +387,13 @@ All enemies deal **1 damage**.
 ### 6.3 Win and lose
 
 - **Win** — reach the Exit tile.
-- **Lose (run)** — player HP reaches 0.
-- **Deck empty** — retry the current level. This is intended, not a run loss.
-- **Torch empty** — retry the current level. This is intended, not a run loss.
-- **Holes** — no longer cause a fall or a restart. They are jumpable barriers.
+- **HP 0** — reset the current level to its entry state: entry HP, restocked deck and
+  hand, free reroll, torch, enemies, and unopened treasure. This is a level reset, not a
+  run loss. The run continues.
+- **Deck empty** — reset the current level. This is intended, not a run loss.
+- **Torch empty** — reset the current level. This is intended, not a run loss.
+- **Holes** — Grid: jumpable barriers; no fall and no restart. Linear: entering a
+  hole with Walk kills the player and resets the level.
 
 ### 6.4 Torch
 
@@ -302,13 +410,46 @@ All enemies deal **1 damage**.
 
 ### 6.5 Treasure and gold
 
-Treasure gives 1–2 random cards and gold. The gold sink is TBD. The core
-between-map flow is the pack and bonus choice; gold may later buy extra rerolls
-or removals.
+Treasure opens once and grants cards from its `TreasureData` asset, plus gold and
+heal. The gold sink is TBD. The core between-map flow is the reward screen in
+§6.6; the older pack and bonus text in §7 is superseded for the current build.
+
+### 6.6 Map exits, rewards, and transition
+
+- Exits are object markers on Floor cells. They are numbered in creation order
+  and each has a destination map. A destination is a `MapData` asset or a prefab
+  with a `MapView` that exposes a `MapData`.
+- **Grid:** standing on an exit shows a persistent **Take Exit** button. The
+  torch keeps running while the button is visible. Clicking it opens the reward
+  screen.
+- **Linear:** reaching an interior exit with Walk or Jump pauses movement and
+  offers **Continue** or **Enter**. Enter opens the reward screen. Continue
+  forfeits that exit permanently and resumes the remaining steps. If no steps
+  remain, Continue leaves the player on the tile with the exit forfeited.
+  Reaching a terminal exit at a path dead end takes it automatically.
+- The torch keeps running during the Linear exit prompt.
+- Taking an exit heals **1 HP**, capped at max.
+- The reward screen shows **three distinct `Card3Tuple` options** from the map's
+  reward pool. Each option is three cards. Each option can be rerolled **once**
+  for a tuple that has not been shown. Choosing an option grants all three cards
+  to the run deck.
+- A loading overlay runs for at least one second, then the destination starts in
+  the same scene.
+- Current HP, max HP, gold, owned cards, claimed treasure, and the level number
+  carry. The torch resets. The deck restocks and shuffles. The hand resets to 5.
+  The free reroll resets. The exited map's state is discarded and cannot be
+  returned to; reusing the same map asset starts it fresh.
+- HP 0, deck exhaustion, and torch burnout reset the current level to its entry
+  state. The run continues.
+- The reward pool should contain at least six tuples. A smaller pool logs a soft
+  alert. The meta upgrade stage is deferred.
 
 ---
 
 ## 7. Between Maps
+
+> **Current build:** the pack and bonus flow below is superseded by the
+> `Card3Tuple` reward screen in §6.6. The bonus and meta stage are deferred.
 
 - **Pack:** every completed level grants a pack choice: choose 1 of 3 packs.
   Each pack contains 1–3 cards.
@@ -323,8 +464,8 @@ or removals.
 - Free removal is removed. Removal comes only from the bonus choice.
 - Dice: +1 die on some levels, not all. The schedule is TBD.
 - Run length: TBD.
-- Map size: tutorial maps average **8×8**, beginner maps **12×12**, and endgame
-  maps up to **38×38**.
+- Map size: **4 to 64 per side**, with **8×8** tutorial and **12×12** beginner
+  presets. Maps are Grid or Linear; see §5.0.
 
 ### 7.1 Starting deck (14 cards)
 
@@ -348,13 +489,16 @@ or removals.
 | Enemy HP | 1 normal, 2 tank |
 | Jump distance | 2 (skip 1) |
 | Walk | up to the rolled die value of movement; diagonal = 2, orthogonal = 1 |
+| Linear Walk | full rolled distance along the path |
+| Linear Jump | 2 path steps; first step cannot be a branch |
 | Damaging tile | 1 HP per tile entered |
 | Heal | +1 HP |
 | Draw | 1 per die rolled at end of turn; 1 per kill immediately (2 for a tank) |
 | Treasure | 1–2 random cards, plus gold/score |
 | Reroll | 1 free per map; paid 1 HP from map 2 |
 | Torch | tuned for 3–6 minute levels |
-| Map size | 8×8 tutorial, 12×12 beginner, up to 38×38 endgame |
+| Map size | 4 to 64 per side; 8×8 tutorial, 12×12 beginner |
+| Map kinds | Grid and Linear; same 4–64 canvas |
 
 ---
 
@@ -371,12 +515,15 @@ or removals.
    2. A paid reroll at 1 HP kills the player. On map 1, an unplayable die is
    skipped.
 4. **Mandatory play** — if a playable card exists, the player must play one.
-5. **Movement** — Walk moves up to the die value of movement (diagonal = 2,
-   orthogonal = 1). The player picks the end tile;
-   the game auto-paths. Safe paths are preferred; damaging paths cost HP;
-   unreachable paths are grey. Holes require a Jump card.
-6. **Terrain** — three obstacle types: holes (jumpable), damaging (walkable at
-   HP cost), walls (impassable). The player never falls into holes.
+5. **Movement** — Grid: Walk moves up to the die value of movement (diagonal = 2,
+   orthogonal = 1). The player picks the end tile; the game auto-paths. Safe paths
+   are preferred; damaging paths cost HP; unreachable paths are grey. Holes require
+   a Jump card. Linear: Walk spends the full roll forward along the path with no
+   destination choice; branch and exit prompts pause the movement.
+6. **Terrain** — Grid: three obstacle types, holes (jumpable), damaging (walkable
+   at HP cost), walls (impassable); the player never falls into holes. Linear:
+   holes and damaging only; walls and sand are disallowed and a Walk into a hole
+   kills the player.
 7. **Enemies** — stationary. Attack type: melee (own tile) or ranged (adjacent,
    8-way; diagonal = 1 range).
    Speed type: fast (attacks on entry) or slow (attacks at the start of the next
@@ -388,7 +535,8 @@ or removals.
    only.
 10. **Between maps** — choose 1 of 3 packs (1–3 cards), then 1 of 3 bonuses.
     Each option set can be rerolled once. Removal comes only from the bonus.
-11. **No hole death.** Holes are barriers, not hazards.
+11. **Hole behavior is map-kind specific.** On Grid maps holes are barriers, not
+    hazards. On Linear maps a hole is lethal to Walk and is crossed with Jump.
 12. **No separate character level-up.** Map completion is the progression step;
     the per-map bonus is the reward. Free reroll increases through map
     progression are TBD.
@@ -404,6 +552,15 @@ or removals.
 16. **Free rerolls** — one free reroll per map, reset at map entry and level
     reset. Paid 1 HP rerolls unlock on map 2. More free rerolls through map
     progression are TBD.
+17. **Linear path authoring.** The designer paints path tiles and branch markers.
+    Path sections that are not meant to connect must not touch orthogonally.
+    Every dead end other than the start must have an exit.
+18. **Linear auto-targeting.** Walk and Jump spend the full action forward;
+    Damage hits the first enemy ahead within range; Heal and Draw are self.
+    Complex cards are set aside until the next Grid map.
+19. **Linear merges are inferred.** A merge tile is not marked. The builder
+    orients the path from the start and treats an unmarked junction with one
+    outgoing edge as a merge. A branch marker is required for a split.
 
 ---
 
@@ -425,8 +582,10 @@ or removals.
    and failure attribution harder. Retry HP is the level-entry HP, not full.
 5. **Real time vs. turn-based play.** The torch punishes thinking and keeps
    running on alt-tab. It may frustrate players who read cards or plan.
-6. **Map size.** A 38×38 endgame map with limited early actions may be slow
-   against a 3–6 minute torch.
+6. **Map size.** The 4–64 range includes maps much larger than the current
+   movement budget. A full 64-wide traversal is an authoring option, not a
+   promise of balance. The level designer must size paths and treasure to the
+   deck and torch.
 7. **Gold has no sink.** Treasure gives gold, but the current meta does not
    spend it.
 8. **Run length is undefined.** The number of maps per run is TBD.
@@ -448,6 +607,18 @@ or removals.
     are earned through map progression is TBD.
 16. **Family balance.** Elvish (2) has four cards, including MelowCart; Devilish
     (5) and Sinitic (6) have three each. The lucky-number spread needs testing.
+17. **Linear path length.** A 1×64 or long snaking path may exceed the current
+    movement budget. Length is an authoring cap; tune path length, treasure, and
+    torch together.
+18. **Branch and merge authoring errors.** Missing branch markers, path sections
+    that touch accidentally, disconnected path tiles, and dead ends without exits
+    are soft alerts. They can still produce a broken map at runtime.
+19. **Linear prompt state.** Branch and exit prompts pause card resolution and
+    keep the torch running. Burnout, HP 0, or deck exhaustion must cancel the
+    pending movement cleanly.
+20. **Grid/Linear card pool skew.** Complex cards disappear from the level deck
+    on a Linear map. The run deck keeps them, but a long Linear section can feel
+    like a different deck. Tune the allowed card mix.
 
 ---
 
@@ -461,3 +632,8 @@ or removals.
   card-select event when one is assigned; it is silent while unassigned.
 - The gameplay rules remain in `GameSession`. The planned bridge maps
   `CardInstance` to `CardInfo` and routes selection into `PlayCard`.
+- Grid maps use drag-to-target through `QaTargetingController`. Linear maps use
+  click-to-play through `QaCardView.PlayCardAuto`, plus a branch arrow panel and
+  an exit Continue/Enter panel in `QaBootstrap`.
+- Linear maps render only painted path tiles and frame the path bounds. Grid maps
+  keep the full-grid rendering and camera.
