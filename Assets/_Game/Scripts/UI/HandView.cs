@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using DiceDrive.Cards;
-using FMODUnity;
 using UnityEngine;
 
 namespace DiceDrive.UI
@@ -29,6 +29,15 @@ namespace DiceDrive.UI
         [SerializeField] private float dealInDistance = 500f;
         [SerializeField] private HandLayout layout = new();
 
+        /// <summary>Raised when the pointer moves onto a different card.</summary>
+        public event Action<CardView> CardHovered;
+
+        /// <summary>Raised as each dealt card leaves the deck.</summary>
+        public event Action<CardView> CardDealt;
+
+        /// <summary>Raised once the last card of a deal has landed face-up.</summary>
+        public event Action DealCompleted;
+
         private readonly List<CardView> views = new();
         private CardView hovered;
 
@@ -41,19 +50,6 @@ namespace DiceDrive.UI
         private void OnDisable()
         {
             service.Selection.OfferChanged -= Refresh;
-        }
-
-        private void Start()
-        {
-            // Load the deal sounds up front so the first card doesn't stall while FMOD reads them from disk.
-            if (FMODEvents.instance == null) return;
-            PreloadSound(FMODEvents.instance.drawCard);
-            PreloadSound(FMODEvents.instance.drawCardEnd);
-        }
-
-        private static void PreloadSound(EventReference sound)
-        {
-            if (!sound.IsNull) RuntimeManager.GetEventDescription(sound).loadSampleData();
         }
 
         private void Refresh()
@@ -78,6 +74,7 @@ namespace DiceDrive.UI
                     view.PointerEntered += OnPointerEntered;
                     view.PointerExited += OnPointerExited;
                     view.Clicked += OnClicked;
+                    view.DealStarted += OnCardDealt;
                     created.Add(view);
                 }
                 views.Add(view);
@@ -89,6 +86,7 @@ namespace DiceDrive.UI
                 removed.PointerEntered -= OnPointerEntered;
                 removed.PointerExited -= OnPointerExited;
                 removed.Clicked -= OnClicked;
+                removed.DealStarted -= OnCardDealt;
                 if (removed == hovered) hovered = null;
 
                 if (reveal != null && service.Selection.IsSelected(removed.Card.Id)) reveal.Play(removed);
@@ -128,9 +126,10 @@ namespace DiceDrive.UI
         private void OnLastCardDealt(CardView last)
         {
             last.DealFinished -= OnLastCardDealt;
-            if (AudioManager.instance == null || FMODEvents.instance == null) return;
-            AudioManager.instance.PlayOneShot(FMODEvents.instance.drawCardEnd);
+            DealCompleted?.Invoke();
         }
+
+        private void OnCardDealt(CardView view) => CardDealt?.Invoke(view);
 
         private void ApplyLayout()
         {
@@ -157,6 +156,8 @@ namespace DiceDrive.UI
 
         private void OnPointerEntered(CardView view)
         {
+            // Only a change of card counts: a card re-entering under the pointer as it lifts is the same hover.
+            if (hovered != view) CardHovered?.Invoke(view);
             hovered = view;
             ApplyLayout();
         }

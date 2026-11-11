@@ -31,6 +31,8 @@ namespace DiceDrive.UI
         public event Action<CardView> PointerEntered;
         public event Action<CardView> PointerExited;
         public event Action<CardView> Clicked;
+        /// <summary>Raised once when a dealt card leaves the deck.</summary>
+        public event Action<CardView> DealStarted;
         /// <summary>Raised once when a dealt card has landed and turned face-up.</summary>
         public event Action<CardView> DealFinished;
 
@@ -48,7 +50,7 @@ namespace DiceDrive.UI
 
         // Dealing: wait at the deck, fly face-down, then flip to the face.
         private float dealDelay;
-        private bool dealing; // true until the card leaves the deck (plays the draw sound once)
+        private bool dealing; // true until the card leaves the deck (raises DealStarted once)
         private bool faceDown;
         private float flip = -1f; // < 0: not flipping; 0..1: flip progress
 
@@ -131,7 +133,7 @@ namespace DiceDrive.UI
             if (dealing)
             {
                 dealing = false; // this card is leaving the deck right now
-                PlayDrawSound();
+                DealStarted?.Invoke(this);
                 if (!faceDown) DealFinished?.Invoke(this); // no card back: there is no flip to wait for
             }
 
@@ -148,13 +150,6 @@ namespace DiceDrive.UI
 
             group.alpha = Mathf.Lerp(group.alpha, targetAlpha, t);
             if (dismissing && group.alpha < 0.02f) Destroy(gameObject);
-        }
-
-        private static void PlayDrawSound()
-        {
-            // Skipped in scenes without the audio objects (e.g. QA scenes).
-            if (AudioManager.instance == null || FMODEvents.instance == null) return;
-            AudioManager.instance.PlayOneShot(FMODEvents.instance.drawCard);
         }
 
         /// <summary>Advances the deal flip and returns the horizontal scale factor (1 = flat, 0 = edge-on).</summary>

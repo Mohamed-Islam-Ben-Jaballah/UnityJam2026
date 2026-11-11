@@ -9121,23 +9121,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
       propertyPath: cardSelectedSound.Path
-      value: event:/Cards/DrawCard
+      value: event:/Cards/PlayCard
       objectReference: {fileID: 0}
     - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
       propertyPath: cardSelectedSound.Guid.Data1
-      value: 103353799
+      value: -1117701054
       objectReference: {fileID: 0}
     - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
       propertyPath: cardSelectedSound.Guid.Data2
-      value: 1102054105
+      value: 1145597762
       objectReference: {fileID: 0}
     - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
       propertyPath: cardSelectedSound.Guid.Data3
-      value: 173413262
+      value: -138718538
       objectReference: {fileID: 0}
     - target: {fileID: 3231486110945204129, guid: ca77314d008e1bf4b90f6dad8c14b102, type: 3}
       propertyPath: cardSelectedSound.Guid.Data4
-      value: 1923232625
+      value: 2126127712
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14901,13 +14901,20 @@ MonoBehaviour:
       Data3: 1380774542
       Data4: -1648277278
     Path: event:/Cards/DrawCardEnd
-  <placeholderPlayCard>k__BackingField:
+  <PlayCard>k__BackingField:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -1117701054
+      Data2: 1145597762
+      Data3: -138718538
+      Data4: 2126127712
+    Path: event:/Cards/PlayCard
+  <HoverCard>k__BackingField:
+    Guid:
+      Data1: 237947275
+      Data2: 1166012642
+      Data3: 1189894846
+      Data4: -632075921
+    Path: event:/Cards/HoverCard
   <diceRoll>k__BackingField:
     Guid:
       Data1: -1446958053

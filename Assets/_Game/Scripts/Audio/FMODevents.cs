@@ -7,7 +7,9 @@ public class FMODEvents : MonoBehaviour
     [field: SerializeField] public EventReference drawCard { get; private set; }
     [field: SerializeField] public EventReference drawCardEnd { get; private set; }
     
-    [field: SerializeField] public EventReference placeholderPlayCard { get; private set; }     // [PLACEHOLDER]
+    [field: SerializeField] public EventReference PlayCard { get; private set; }   
+    [field: SerializeField] public EventReference HoverCard { get; private set; }   
+
 
     [field: Header("Dice SFX")]
     [field: SerializeField] public EventReference diceRoll { get; private set; }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{09b1a542-0f68-4677-aa04-4167d84c6cb5}">
+		<property name="assetPath">
+			<value>Music/Bass + LowDrum.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>8.7339374999999997</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{28934dde-b0e7-480c-88b4-72af10cea213}</destination>
+		</relationship>
+	</object>
+</objects>

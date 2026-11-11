@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5809693948785969001}
   - component: {fileID: 343270326868420993}
   - component: {fileID: 8607406124061033292}
+  - component: {fileID: 4654731602072035996}
   m_Layer: 5
   m_Name: Dice
   m_TagString: Untagged
@@ -119,6 +120,18 @@ MonoBehaviour:
   spinSpeed: 900
   fastFaceInterval: 0.04
   slowFaceInterval: 0.45
+--- !u!114 &4654731602072035996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1132509610677749800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f63c706848a6194bb0ad20234bd87f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.DiceAudio
 --- !u!1 &1630663500194006052
 GameObject:
   m_ObjectHideFlags: 0
@@ -559,6 +572,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2215459809928787358}
   - component: {fileID: 7431792763784085766}
+  - component: {fileID: 5557739938491634111}
   m_Layer: 5
   m_Name: Hand
   m_TagString: Untagged
@@ -615,6 +629,18 @@ MonoBehaviour:
     hoverPush: 45
     dimmedScale: 0.94
     shadeAmount: 1
+--- !u!114 &5557739938491634111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8056971833175503837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dee41c60348f6c94a938f2c845f4d490, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.HandAudio
 --- !u!1 &8655003279987693283
 GameObject:
   m_ObjectHideFlags: 0

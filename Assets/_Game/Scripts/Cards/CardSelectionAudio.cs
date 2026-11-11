@@ -17,7 +17,8 @@ namespace DiceDrive.Cards
 
         private void OnCardSelected(CardInfo card)
         {
-            if (!cardSelectedSound.IsNull) RuntimeManager.PlayOneShot(cardSelectedSound);
+            if (AudioManager.instance == null || cardSelectedSound.IsNull) return;
+            AudioManager.instance.PlayOneShot(cardSelectedSound);
         }
     }
 }
