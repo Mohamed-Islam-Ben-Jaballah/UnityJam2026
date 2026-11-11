@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DiceDrive.Cards;
 using UnityEngine;
@@ -17,8 +18,25 @@ namespace DiceDrive.UI
         [SerializeField] private RectTransform cardContainer;
         [Tooltip("Presents the selected card. If empty, the selected card just fades out.")]
         [SerializeField] private CardRevealView reveal;
+        [Header("Dealing")]
+        [Tooltip("Deck pile new cards are dealt from. If empty, cards slide up from below instead.")]
+        [SerializeField] private RectTransform deck;
+        [Tooltip("Card back shown while a card flies from the deck, before it flips.")]
+        [SerializeField] private Sprite cardBack;
+        [Tooltip("Seconds between one card leaving the deck and the next.")]
+        [SerializeField] private float dealInterval = 0.15f;
+        [Tooltip("Used only when no deck is set.")]
         [SerializeField] private float dealInDistance = 500f;
         [SerializeField] private HandLayout layout = new();
+
+        /// <summary>Raised when the pointer moves onto a different card.</summary>
+        public event Action<CardView> CardHovered;
+
+        /// <summary>Raised as each dealt card leaves the deck.</summary>
+        public event Action<CardView> CardDealt;
+
+        /// <summary>Raised once the last card of a deal has landed face-up.</summary>
+        public event Action DealCompleted;
 
         private readonly List<CardView> views = new();
         private CardView hovered;
@@ -62,6 +80,7 @@ namespace DiceDrive.UI
                     view.PointerEntered += OnPointerEntered;
                     view.PointerExited += OnPointerExited;
                     view.Clicked += OnClicked;
+                    view.DealStarted += OnCardDealt;
                     created.Add(view);
                 }
                 views.Add(view);
@@ -73,6 +92,7 @@ namespace DiceDrive.UI
                 removed.PointerEntered -= OnPointerEntered;
                 removed.PointerExited -= OnPointerExited;
                 removed.Clicked -= OnClicked;
+                removed.DealStarted -= OnCardDealt;
                 if (removed == hovered) hovered = null;
 
                 if (reveal != null && service.Selection.IsSelected(removed.Card.Id)) reveal.Play(removed);
@@ -80,18 +100,42 @@ namespace DiceDrive.UI
             }
 
             ApplyLayout();
-
-            foreach (var view in created)
-            {
-                view.JumpTo(DealInStart(view));
-            }
+            Deal(created);
         }
 
-        private Vector2 DealInStart(CardView view)
+        /// <summary>New cards leave the deck one after another, face-down, and flip on landing.</summary>
+        private void Deal(List<CardView> created)
         {
-            layout.GetSlot(views.IndexOf(view), views.Count, -1, out var position, out _);
-            return position + Vector2.down * dealInDistance;
+            if (deck == null)
+            {
+                foreach (var view in created)
+                {
+                    layout.GetSlot(views.IndexOf(view), views.Count, -1, out var slot, out _);
+                    view.JumpTo(slot + Vector2.down * dealInDistance);
+                }
+                return;
+            }
+
+            // Cards sit centered in the container, so its local space is their anchored space.
+            Vector2 origin = cardContainer.InverseTransformPoint(deck.position);
+            for (int i = 0; i < created.Count; i++)
+            {
+                var view = created[i];
+                float startScale = deck.rect.width / ((RectTransform)view.transform).rect.width;
+                view.Deal(origin, startScale, i * dealInterval, cardBack);
+            }
+
+            // The last card is dealt last, so once it is face-up the whole deal is done.
+            if (created.Count > 0) created[created.Count - 1].DealFinished += OnLastCardDealt;
         }
+
+        private void OnLastCardDealt(CardView last)
+        {
+            last.DealFinished -= OnLastCardDealt;
+            DealCompleted?.Invoke();
+        }
+
+        private void OnCardDealt(CardView view) => CardDealt?.Invoke(view);
 
         private void ApplyLayout()
         {
@@ -118,6 +162,8 @@ namespace DiceDrive.UI
 
         private void OnPointerEntered(CardView view)
         {
+            // Only a change of card counts: a card re-entering under the pointer as it lifts is the same hover.
+            if (hovered != view) CardHovered?.Invoke(view);
             hovered = view;
             ApplyLayout();
         }

@@ -7,7 +7,9 @@ public class FMODEvents : MonoBehaviour
     [field: SerializeField] public EventReference drawCard { get; private set; }
     [field: SerializeField] public EventReference drawCardEnd { get; private set; }
     
-    [field: SerializeField] public EventReference placeholderPlayCard { get; private set; }     // [PLACEHOLDER]
+    [field: SerializeField] public EventReference PlayCard { get; private set; }   
+    [field: SerializeField] public EventReference HoverCard { get; private set; }   
+
 
     [field: Header("Dice SFX")]
     [field: SerializeField] public EventReference diceRoll { get; private set; }
@@ -22,10 +24,20 @@ public class FMODEvents : MonoBehaviour
     [field: SerializeField] public EventReference shuffleDeck { get; private set; }
 
     [field: Header("UI SFX")]
-    [field: SerializeField] public EventReference placeholderButtonClick { get; private set; }  // [PLACEHOLDER]
+    [field: SerializeField] public EventReference ButtonClick { get; private set; }  
+    [field: SerializeField] public EventReference ButtonHover { get; private set; }  
 
     [field: Header("Music")]
     [field: SerializeField] public EventReference placeholderMusic { get; private set; }        // [PLACEHOLDER]
+    
+    [field: Header("Gameplay")]
+    [field: SerializeField] public EventReference PlayerAttack { get; private set; }   
+    
+    [field: SerializeField] public EventReference SkeletonAttack { get; private set; }   
+     [field: SerializeField] public EventReference WoodenCreatureAttack { get; private set; }
+      [field: SerializeField] public EventReference DaggerAttack { get; private set; }      
+
+
 
     public static FMODEvents instance { get; private set; }
 
