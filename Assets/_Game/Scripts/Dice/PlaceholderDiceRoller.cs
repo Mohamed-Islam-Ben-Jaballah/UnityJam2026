@@ -15,8 +15,16 @@ namespace DiceDrive.DiceSystem
 
         private readonly System.Random random = new();
 
-        private void OnEnable() => view.RollRequested += Roll;
-        private void OnDisable() => view.RollRequested -= Roll;
+        private void OnEnable()
+        {
+            if (view == null) view = FindAnyObjectByType<DiceView>(FindObjectsInactive.Include); // prefab used in a new scene
+            if (view != null) view.RollRequested += Roll;
+        }
+
+        private void OnDisable()
+        {
+            if (view != null) view.RollRequested -= Roll;
+        }
 
         private void Roll()
         {

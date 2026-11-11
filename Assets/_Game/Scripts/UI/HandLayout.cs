@@ -38,10 +38,14 @@ namespace DiceDrive.UI
 
             angle = -offset * step;
 
-            // Place cards on a circle whose curvature matches the rotation step.
-            float stepRad = Mathf.Max(step, 0.01f) * Mathf.Deg2Rad;
-            float radius = spacing / stepRad;
-            float y = -(1f - Mathf.Cos(offset * stepRad)) * radius;
+            // Place cards on a circle whose curvature matches the rotation step;
+            // with no rotation the cards sit on one straight line.
+            float y = 0f;
+            if (step > 0f)
+            {
+                float stepRad = step * Mathf.Deg2Rad;
+                y = -(1f - Mathf.Cos(offset * stepRad)) * (spacing / stepRad);
+            }
             float x = offset * spacing;
 
             if (hoveredIndex >= 0 && index != hoveredIndex)

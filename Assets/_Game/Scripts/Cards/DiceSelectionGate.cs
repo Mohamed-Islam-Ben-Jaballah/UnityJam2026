@@ -14,6 +14,11 @@ namespace DiceDrive.Cards
 
         private void OnEnable()
         {
+            if (service == null) service = GetComponent<CardSelectionService>();
+            if (service == null) service = FindAnyObjectByType<CardSelectionService>();
+            if (dice == null) dice = FindAnyObjectByType<DiceView>(FindObjectsInactive.Include); // prefab used in a new scene
+            if (service == null || dice == null) return;
+
             service.Selection.SelectionEnabled = false;
             dice.RollStarted += Lock;
             dice.Landed += Unlock;
@@ -21,6 +26,7 @@ namespace DiceDrive.Cards
 
         private void OnDisable()
         {
+            if (dice == null) return;
             dice.RollStarted -= Lock;
             dice.Landed -= Unlock;
         }

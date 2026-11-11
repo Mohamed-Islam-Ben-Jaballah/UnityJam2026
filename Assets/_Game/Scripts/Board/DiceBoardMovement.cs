@@ -12,7 +12,9 @@ namespace DiceDrive.Board
 {
     /// <summary>
     /// Turn flow on the fixed path:
-    /// roll → (optional single reroll) → Go → the player walks exactly the rolled number of positions.
+    /// roll → (optional single reroll) → click a highlighted destination → the player walks exactly the rolled
+    /// number of positions. Where the path forks within the roll, every reachable destination is highlighted and the
+    /// clicked one decides which branch is taken.
     /// When an enemy blocks the next position the walk pauses (<see cref="EncounterStarted"/>) until
     /// <see cref="ResolveEncounter"/> is called: Kill (Damage card) or TakeHit stop on the enemy's tile, Jump hops
     /// over it and keeps walking. Hidden devils trigger when crossed (hurt, stop).
@@ -69,6 +71,7 @@ namespace DiceDrive.Board
         private int _roll;
         private int _rerollsLeft;
         private EncounterChoice? _choice;
+        private List<IReadOnlyList<int>> _routes = new List<IReadOnlyList<int>>();
         private TurnState _state = TurnState.AwaitingRoll;
 
         public PathSession Session => _session;
@@ -76,7 +79,6 @@ namespace DiceDrive.Board
         public int Position => _session?.Position ?? 0;
         public int Hp => _session?.Player.Hp ?? 0;
         public int MaxHp => _session?.Player.MaxHp ?? 0;
-        public int ExitIndex => path != null ? path.ExitIndex : 0;
         public int CurrentRoll => _roll;
         public int RerollsLeft => _rerollsLeft;
         public bool IsBusy => _state == TurnState.Walking || _state == TurnState.AwaitingEncounter;
@@ -106,12 +108,15 @@ namespace DiceDrive.Board
         public event Action TurnFinished;
         public event Action<CharacterActor, int> EnemyDefeated;
         public event Action<GameObject, int> DevilRevealed;
+        /// <summary>Raised when the player clicks a path tile that isn't the rolled destination (tile index).</summary>
+        public event Action<int> IllegalMoveAttempted;
 
         // ------------------------------------------------------------------ setup
 
         private void Awake()
         {
             ResolveReferences();
+            if (path != null && path.Count < 2) path.AutoBuild(); // new level with an empty path: build it from the tilemaps
             if (player == null || path == null || path.Count < 2)
             {
                 Debug.LogError("[DiceBoardMovement] Needs a player (tag 'Player') and a BoardPath with at least 2 positions.", this);
@@ -120,7 +125,7 @@ namespace DiceDrive.Board
             }
 
             path.Validate();
-            _session = new PathSession(path.ExitIndex, rules);
+            _session = new PathSession(path.Count, path.Next, rules);
             _session.HpChanged += hp => HpChanged?.Invoke(hp, _session.Player.MaxHp);
             _session.PlayerDied += () => PlayerDied?.Invoke();
 
@@ -178,8 +183,8 @@ namespace DiceDrive.Board
 
         private bool ValidIndex(int index)
         {
-            if (index >= 1 && index <= path.ExitIndex) return true;
-            Debug.LogWarning($"[DiceBoardMovement] Encounter index {index} is outside 1..{path.ExitIndex}; ignored.", this);
+            if (index >= 1 && index < path.Count) return true;
+            Debug.LogWarning($"[DiceBoardMovement] Encounter index {index} is outside 1..{path.Count - 1}; ignored.", this);
             return false;
         }
 
@@ -241,11 +246,15 @@ namespace DiceDrive.Board
             }
 
             if (dice != null) dice.Interactable = _rerollsLeft > 0; // die stays clickable only for the reroll
-            Highlight(Destination, destinationColor);
+            _routes = _session.RoutesFor(_roll);
+            Highlight(Destinations, destinationColor);
         }
 
-        /// <summary>Where the current roll ends the walk if nothing interrupts it.</summary>
-        public int Destination => Math.Min(Position + _roll, ExitIndex);
+        /// <summary>
+        /// Where the current roll can end the walk if nothing interrupts it: one position per route (several when
+        /// the path forks within the roll).
+        /// </summary>
+        public IEnumerable<int> Destinations => _routes.Select(r => r[r.Count - 1]);
 
         // Walk starts by clicking the highlighted destination tile.
         private void Update()
@@ -260,8 +269,15 @@ namespace DiceDrive.Board
             if (cam == null) return;
             Vector3 world = cam.ScreenToWorldPoint(pointer.position.ReadValue());
             world.z = 0f;
-            if (path.IndexAt(world) == Destination) Go();
+            int tile = path.IndexAt(world);
+            if (tile < 0) return; // clicked off the path: ignore
+
+            // Any highlighted destination is valid (several when the path forks); the clicked one picks the branch.
+            if (!IsDestination(tile) || !Go(tile)) IllegalMoveAttempted?.Invoke(tile);
         }
+
+        /// <summary>True if <paramref name="tile"/> is one of the current roll's <see cref="Destinations"/>.</summary>
+        public bool IsDestination(int tile) => Destinations.Contains(tile);
 
         /// <summary>DEVELOPMENT ONLY: roll (or reroll) to a chosen result.</summary>
         public bool ForceRoll(int value)
@@ -278,10 +294,17 @@ namespace DiceDrive.Board
             return true;
         }
 
-        /// <summary>Starts the walk with the current roll.</summary>
-        public bool Go()
+        /// <summary>Starts the walk with the current roll (only when it has a single possible destination).</summary>
+        public bool Go() => _routes.Count == 1 && Go(Destinations.First());
+
+        /// <summary>Starts the walk towards one of the <see cref="Destinations"/>, taking that branch at any fork.</summary>
+        public bool Go(int destination)
         {
             if (State != TurnState.AwaitingGo || (dice != null && dice.IsRolling)) return false;
+            var route = _routes.FirstOrDefault(r => r[r.Count - 1] == destination);
+            if (route == null) return false;
+
+            _session.SetRoute(route);
             if (dice != null) dice.Interactable = false;
             ClearHighlight();
             StartCoroutine(WalkRoutine());
@@ -309,7 +332,7 @@ namespace DiceDrive.Board
                 // Walk freely up to the next blocker (enemy, hidden devil) or the end of the roll.
                 var segment = new List<Vector3>();
                 PathEncounter devil = null;
-                while (remaining > 0 && !_session.AtExit && _session.EnemyAt(_session.Position + 1) == null)
+                while (remaining > 0 && !_session.AtExit && _session.Next >= 0 && _session.EnemyAt(_session.Next) == null)
                 {
                     devil = _session.StepForward();
                     remaining--;
@@ -325,12 +348,12 @@ namespace DiceDrive.Board
                     break; // a hidden devil stops the walk
                 }
 
-                if (remaining == 0 || _session.AtExit) break;
+                if (remaining == 0 || _session.AtExit || _session.Next < 0) break;
 
                 // An enemy blocks the next position: ask for a card.
-                PendingEnemy = _session.EnemyAt(_session.Position + 1);
+                PendingEnemy = _session.EnemyAt(_session.Next);
                 _choice = null;
-                Highlight(PendingEnemy.Index, encounterColor);
+                Highlight(new[] { PendingEnemy.Index }, encounterColor);
                 State = TurnState.AwaitingEncounter;
                 EncounterStarted?.Invoke(PendingEnemy);
                 while (_choice == null) yield return null;
@@ -374,6 +397,8 @@ namespace DiceDrive.Board
 
         private void EndTurn()
         {
+            _session.ClearRoute();
+            _routes.Clear();
             if (_session.IsDead)
             {
                 State = TurnState.Dead;
@@ -471,9 +496,9 @@ namespace DiceDrive.Board
 
         // ------------------------------------------------------------------ highlights
 
-        private void Highlight(int index, Color color)
+        private void Highlight(IEnumerable<int> indices, Color color)
         {
-            var cells = path.GetCells(index).ToList();
+            var cells = indices.SelectMany(path.GetCells).Distinct().ToList();
             foreach (var glow in glows)
             {
                 if (glow != null) glow.SetHighlights(cells.Where(glow.IsBoardCell), color);

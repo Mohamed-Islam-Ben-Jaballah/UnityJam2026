@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2992909528426291160}
   - component: {fileID: 5491143855996128682}
   - component: {fileID: 994161632117551874}
+  - component: {fileID: 7147507897960113226}
   m_Layer: 0
   m_Name: Goblin
   m_TagString: Untagged
@@ -83,6 +84,19 @@ MonoBehaviour:
   baseOrder: 0
   sortByY: 1
   yPrecision: 100
+--- !u!114 &7147507897960113226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3745387394956082487}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23a3da88a8163684899ed5d2a88f9054, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Audio.EnemyAudio
+  attackSound: 2
 --- !u!1 &6654744425783999088
 GameObject:
   m_ObjectHideFlags: 0
