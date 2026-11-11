@@ -18,6 +18,10 @@ namespace DiceDrive.UI
     {
         [SerializeField] private RectTransform visual;
         [SerializeField] private Image artwork;
+        [Tooltip("Optional text shown only while the card has no artwork (placeholder cards).")]
+        [SerializeField] private TMPro.TMP_Text placeholderLabel;
+        [Tooltip("Tint while the card can't be played (e.g. dice don't match).")]
+        [SerializeField] private Color lockedTint = new(0.35f, 0.35f, 0.38f);
         [Tooltip("Tint applied to the card image when it is shaded (another card is hovered).")]
         [SerializeField] private Color shadedTint = new(0.4f, 0.4f, 0.45f);
         [SerializeField] private float smoothing = 14f;
@@ -38,6 +42,8 @@ namespace DiceDrive.UI
         private float shade;
         private float targetAlpha = 1f;
         private bool dismissing;
+        private Color baseColor = Color.white;
+        private bool locked;
 
         private void Awake()
         {
@@ -49,8 +55,20 @@ namespace DiceDrive.UI
         {
             Card = card;
             artwork.sprite = card.Artwork;
-            artwork.enabled = card.Artwork != null;
+
+            // No artwork yet: show a plain coloured card with its label instead of nothing.
+            var placeholder = card.Artwork == null && !string.IsNullOrEmpty(card.Label);
+            artwork.enabled = card.Artwork != null || placeholder;
+            baseColor = card.Artwork != null ? Color.white : card.PlaceholderColor;
+            if (placeholderLabel != null)
+            {
+                placeholderLabel.gameObject.SetActive(placeholder);
+                placeholderLabel.text = card.Label;
+            }
         }
+
+        /// <summary>Locked cards are dimmed (they can still be hovered).</summary>
+        public void SetLocked(bool value) => locked = value;
 
         /// <summary>Sets the pose the card eases toward. <paramref name="shadeAmount"/> is 0 (normal) to 1 (fully shaded).</summary>
         public void SetPose(Vector2 position, float angle, float lift, float scale, float shadeAmount)
@@ -85,7 +103,8 @@ namespace DiceDrive.UI
             visual.localScale = Vector3.Lerp(visual.localScale, Vector3.one * targetScale, t);
 
             shade = Mathf.Lerp(shade, targetShade, t);
-            artwork.color = Color.Lerp(Color.white, shadedTint, shade);
+            var tinted = baseColor * (locked ? lockedTint : Color.white);
+            artwork.color = Color.Lerp(tinted, tinted * shadedTint, shade);
 
             group.alpha = Mathf.Lerp(group.alpha, targetAlpha, t);
             if (dismissing && group.alpha < 0.02f) Destroy(gameObject);

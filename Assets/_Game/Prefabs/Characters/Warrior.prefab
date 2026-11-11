@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3082246360329845076}
   m_Layer: 0
   m_Name: Warrior
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -60,7 +60,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Characters.CharacterActor
   visual: {fileID: 2210442512382132753}
-  moveSpeed: 3
+  moveSpeed: 3.9
   jumpHeight: 1.2
   jumpDuration: 0.55
   attackLunge: 0.2

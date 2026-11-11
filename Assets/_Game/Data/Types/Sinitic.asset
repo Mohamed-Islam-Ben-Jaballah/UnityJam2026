@@ -15,4 +15,6 @@ MonoBehaviour:
   typeId: 3
   luckyNumber: 6
   displayName: Sinitic
+  theme: Fortune
+  color: {r: 0.16, g: 0.32, b: 0.68, a: 1}
   icon: {fileID: 0}

@@ -34,6 +34,15 @@ namespace DiceDrive.Cards
         public bool SelectionEnabled { get; set; } = true;
 
         /// <summary>
+        /// Optional per-card rule (e.g. "only cards matching the roll"). Null = every offered card can be picked.
+        /// </summary>
+        public Func<CardInfo, bool> CanSelect { get; set; }
+
+        /// <summary>True if <paramref name="card"/> could be picked right now.</summary>
+        public bool IsSelectable(CardInfo card) =>
+            SelectionEnabled && card != null && (CanSelect == null || CanSelect(card));
+
+        /// <summary>
         /// Replaces the offered cards with any number of cards. Cards already selected and
         /// duplicate ids are skipped, so a card can never be offered (or picked) twice.
         /// </summary>
@@ -67,6 +76,7 @@ namespace DiceDrive.Cards
             if (index < 0) return false;
 
             var card = offered[index];
+            if (CanSelect != null && !CanSelect(card)) return false;
             offered.RemoveAt(index);
             selected.Add(card);
             selectedIds.Add(cardId);

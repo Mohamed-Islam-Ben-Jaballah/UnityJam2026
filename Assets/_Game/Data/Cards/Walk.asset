@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: _Game.Runtime::DiceDrive.Cards.CardData
   cardName: Walk
   cardType: {fileID: 11400000, guid: 9be5f5b18cb1cc74c900d39068887a24, type: 2}
+  ability: {fileID: 11400000, guid: b9cdea2d34fe41643826507a6170ff1d, type: 2}
   effect: 0
   rangeType: 2
   rangeValue: 0

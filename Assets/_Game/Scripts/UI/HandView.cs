@@ -34,6 +34,12 @@ namespace DiceDrive.UI
             service.Selection.OfferChanged -= Refresh;
         }
 
+        // Dim cards that can't be picked right now (selection disabled, or the card's own rule says no).
+        private void Update()
+        {
+            foreach (var view in views) view.SetLocked(!service.Selection.IsSelectable(view.Card));
+        }
+
         private void Refresh()
         {
             var offered = service.Selection.Offered;

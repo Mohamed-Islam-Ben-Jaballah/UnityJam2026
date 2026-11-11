@@ -27,6 +27,11 @@ namespace DiceDrive.Cards
     {
         public string cardName;
         public CardTypeData cardType;
+
+        [Tooltip("The ability this character activates (shared effect asset). Used by the path/ability system; " +
+                 "the legacy fields below are still read by the grid GameSession (QA scene).")]
+        public AbilityData ability;
+
         public CardEffectType effect;
         public CardRangeType rangeType;
         public int rangeValue;
