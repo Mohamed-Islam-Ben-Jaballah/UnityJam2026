@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{5db629a7-ad04-4c5f-9a77-a17bff11ae23}">
+		<property name="assetPath">
+			<value>inGameSFX/Charms/DevilChime.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>3.9936875000000001</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{28934dde-b0e7-480c-88b4-72af10cea213}</destination>
+		</relationship>
+	</object>
+</objects>

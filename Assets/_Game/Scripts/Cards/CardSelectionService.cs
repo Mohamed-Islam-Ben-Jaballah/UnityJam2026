@@ -3,13 +3,12 @@ using UnityEngine;
 namespace DiceDrive.Cards
 {
     /// <summary>
-    /// Scene access point for the card selection. Other systems reference this component and
-    /// call <see cref="CardSelection.SetOffer"/> to show cards, or subscribe to
-    /// <see cref="CardSelection.CardSelected"/> to react when the player picks one.
+    /// Holds the scene's <see cref="CardSelection"/> (the hand's UI state) for the card UI components.
+    /// Gameplay code should talk to <c>CardUIGateway</c> instead of using this directly.
     /// </summary>
     public sealed class CardSelectionService : MonoBehaviour
     {
-        [SerializeField] private bool logSelections = true;
+        [SerializeField] private bool logSelections;
 
         private CardSelection selection;
 
@@ -19,11 +18,13 @@ namespace DiceDrive.Cards
         private CardSelection CreateSelection()
         {
             var created = new CardSelection();
-            created.CardSelected += card =>
-            {
-                if (logSelections) Debug.Log($"[CardSelection] Selected card '{card.Id}'", this);
-            };
+            created.CardSelected += LogSelection;
             return created;
+        }
+
+        private void LogSelection(CardInfo card)
+        {
+            if (logSelections) Debug.Log($"[CardSelection] Selected card '{card.Id}'", this);
         }
     }
 }

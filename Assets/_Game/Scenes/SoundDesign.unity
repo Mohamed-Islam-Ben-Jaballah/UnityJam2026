@@ -450,7 +450,7 @@ GameObject:
   - component: {fileID: 1797521171}
   - component: {fileID: 1797521170}
   m_Layer: 0
-  m_Name: Studio Bank Loader
+  m_Name: Studio Bank Loader( used for easy events)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -463,7 +463,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1797521169}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a6610d2e704f1648819acc8d7460285, type: 3}
   m_Name: 
@@ -471,11 +471,11 @@ MonoBehaviour:
   CollisionTag: 
   EventReference:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 103353799
+      Data2: 1102054105
+      Data3: 173413262
+      Data4: 1923232625
+    Path: event:/Cards/DrawCard
   Event: 
   EventPlayTrigger: 1
   EventStopTrigger: 0
@@ -485,8 +485,8 @@ MonoBehaviour:
   NonRigidbodyVelocity: 0
   Params: []
   OverrideAttenuation: 0
-  OverrideMinDistance: -1
-  OverrideMaxDistance: -1
+  OverrideMinDistance: 1
+  OverrideMaxDistance: 20
 --- !u!114 &1797521171
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -494,15 +494,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1797521169}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b9468c5f457ace64f8d4df6d642b107f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FMODUnity::FMODUnity.StudioBankLoader
-  LoadEvent: 0
-  UnloadEvent: 0
+  LoadEvent: 1
+  UnloadEvent: 2
   Banks:
   - Master
+  - SFX
   CollisionTag: 
   PreloadSamples: 0
 --- !u!4 &1797521172
@@ -520,6 +521,154 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2017672790
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2017672792}
+  - component: {fileID: 2017672793}
+  - component: {fileID: 2017672791}
+  - component: {fileID: 2017672794}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2017672791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2017672790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48fbaff03b1e30b4f9c5faca0bd2fb33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::AudioManager
+--- !u!4 &2017672792
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2017672790}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: -0, z: -0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2017672793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2017672790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c02b24dd4b74808469f27391bdbec816, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  <drawCard>k__BackingField:
+    Guid:
+      Data1: 103353799
+      Data2: 1102054105
+      Data3: 173413262
+      Data4: 1923232625
+    Path: event:/Cards/DrawCard
+  <drawCardEnd>k__BackingField:
+    Guid:
+      Data1: -74477490
+      Data2: 1333849086
+      Data3: 1380774542
+      Data4: -1648277278
+    Path: event:/Cards/DrawCardEnd
+  <shuffleDeck>k__BackingField:
+    Guid:
+      Data1: 454406959
+      Data2: 1246533332
+      Data3: 532117647
+      Data4: -512526067
+    Path: event:/MightBeUseful/ShuffleDeck
+  <placeholderPlayCard>k__BackingField:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  <diceRoll>k__BackingField:
+    Guid:
+      Data1: -1446958053
+      Data2: 1212793994
+      Data3: -278275419
+      Data4: -1756449052
+    Path: event:/Dice/DiceRoll
+  <chineseCharm>k__BackingField:
+    Guid:
+      Data1: -1244835627
+      Data2: 1163495289
+      Data3: -2099754848
+      Data4: 1873233437
+    Path: event:/Chimes/ChineseCharm
+  <devilCharm>k__BackingField:
+    Guid:
+      Data1: 816788221
+      Data2: 1137040840
+      Data3: -2132799088
+      Data4: 994598381
+    Path: event:/Chimes/DevilCharm
+  <elfCharm>k__BackingField:
+    Guid:
+      Data1: 736985029
+      Data2: 1307013569
+      Data3: -497229182
+      Data4: -89754732
+    Path: event:/Chimes/ElfCharm
+  <illegalMove>k__BackingField:
+    Guid:
+      Data1: -1760667025
+      Data2: 1097075836
+      Data3: -755499903
+      Data4: 929022676
+    Path: event:/MightBeUseful/IllegalMove
+  <placeholderButtonClick>k__BackingField:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  <placeholderMusic>k__BackingField:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+--- !u!114 &2017672794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2017672790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73c2e4b75aa8fde4c88daaea93d58017, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: _Game.Runtime::TestAudio
+  delay: 0.5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -528,3 +677,4 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1797521172}
+  - {fileID: 2017672792}

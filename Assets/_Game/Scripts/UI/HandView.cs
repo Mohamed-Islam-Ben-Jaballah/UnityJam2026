@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DiceDrive.Cards;
+using FMODUnity;
 using UnityEngine;
 
 namespace DiceDrive.UI
@@ -17,6 +18,14 @@ namespace DiceDrive.UI
         [SerializeField] private RectTransform cardContainer;
         [Tooltip("Presents the selected card. If empty, the selected card just fades out.")]
         [SerializeField] private CardRevealView reveal;
+        [Header("Dealing")]
+        [Tooltip("Deck pile new cards are dealt from. If empty, cards slide up from below instead.")]
+        [SerializeField] private RectTransform deck;
+        [Tooltip("Card back shown while a card flies from the deck, before it flips.")]
+        [SerializeField] private Sprite cardBack;
+        [Tooltip("Seconds between one card leaving the deck and the next.")]
+        [SerializeField] private float dealInterval = 0.15f;
+        [Tooltip("Used only when no deck is set.")]
         [SerializeField] private float dealInDistance = 500f;
         [SerializeField] private HandLayout layout = new();
 
@@ -32,6 +41,19 @@ namespace DiceDrive.UI
         private void OnDisable()
         {
             service.Selection.OfferChanged -= Refresh;
+        }
+
+        private void Start()
+        {
+            // Load the deal sounds up front so the first card doesn't stall while FMOD reads them from disk.
+            if (FMODEvents.instance == null) return;
+            PreloadSound(FMODEvents.instance.drawCard);
+            PreloadSound(FMODEvents.instance.drawCardEnd);
+        }
+
+        private static void PreloadSound(EventReference sound)
+        {
+            if (!sound.IsNull) RuntimeManager.GetEventDescription(sound).loadSampleData();
         }
 
         private void Refresh()
@@ -74,17 +96,40 @@ namespace DiceDrive.UI
             }
 
             ApplyLayout();
-
-            foreach (var view in created)
-            {
-                view.JumpTo(DealInStart(view));
-            }
+            Deal(created);
         }
 
-        private Vector2 DealInStart(CardView view)
+        /// <summary>New cards leave the deck one after another, face-down, and flip on landing.</summary>
+        private void Deal(List<CardView> created)
         {
-            layout.GetSlot(views.IndexOf(view), views.Count, -1, out var position, out _);
-            return position + Vector2.down * dealInDistance;
+            if (deck == null)
+            {
+                foreach (var view in created)
+                {
+                    layout.GetSlot(views.IndexOf(view), views.Count, -1, out var slot, out _);
+                    view.JumpTo(slot + Vector2.down * dealInDistance);
+                }
+                return;
+            }
+
+            // Cards sit centered in the container, so its local space is their anchored space.
+            Vector2 origin = cardContainer.InverseTransformPoint(deck.position);
+            for (int i = 0; i < created.Count; i++)
+            {
+                var view = created[i];
+                float startScale = deck.rect.width / ((RectTransform)view.transform).rect.width;
+                view.Deal(origin, startScale, i * dealInterval, cardBack);
+            }
+
+            // The last card is dealt last, so once it is face-up the whole deal is done.
+            if (created.Count > 0) created[created.Count - 1].DealFinished += OnLastCardDealt;
+        }
+
+        private void OnLastCardDealt(CardView last)
+        {
+            last.DealFinished -= OnLastCardDealt;
+            if (AudioManager.instance == null || FMODEvents.instance == null) return;
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.drawCardEnd);
         }
 
         private void ApplyLayout()
