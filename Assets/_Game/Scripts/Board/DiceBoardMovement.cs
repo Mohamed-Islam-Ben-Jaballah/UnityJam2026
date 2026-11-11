@@ -106,6 +106,8 @@ namespace DiceDrive.Board
         public event Action TurnFinished;
         public event Action<CharacterActor, int> EnemyDefeated;
         public event Action<GameObject, int> DevilRevealed;
+        /// <summary>Raised when the player clicks a path tile that isn't the rolled destination (tile index).</summary>
+        public event Action<int> IllegalMoveAttempted;
 
         // ------------------------------------------------------------------ setup
 
@@ -260,7 +262,9 @@ namespace DiceDrive.Board
             if (cam == null) return;
             Vector3 world = cam.ScreenToWorldPoint(pointer.position.ReadValue());
             world.z = 0f;
-            if (path.IndexAt(world) == Destination) Go();
+            int tile = path.IndexAt(world);
+            if (tile == Destination) Go();
+            else if (tile >= 0) IllegalMoveAttempted?.Invoke(tile);
         }
 
         /// <summary>DEVELOPMENT ONLY: roll (or reroll) to a chosen result.</summary>

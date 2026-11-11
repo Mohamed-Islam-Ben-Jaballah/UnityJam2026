@@ -36,6 +36,9 @@ namespace DiceDrive.Characters
         /// <summary>Raised by the "OnAttackImpact" animation event on the attack clips (the frame the blow lands).</summary>
         public event Action AttackImpact;
 
+        /// <summary>Raised by the "OnFootstep" animation event on run clips (the frame a foot touches the ground).</summary>
+        public event Action Footstep;
+
         public bool FacingRight => _renderer.flipX != artFacesRight;
 
         public CharacterAnim Current { get; private set; }
@@ -83,6 +86,12 @@ namespace DiceDrive.Characters
         private void OnAttackImpact()
         {
             AttackImpact?.Invoke();
+        }
+
+        // Animation event receiver (keyed on the Run clip's foot-contact frames).
+        private void OnFootstep()
+        {
+            Footstep?.Invoke();
         }
     }
 }

@@ -28,10 +28,17 @@ public class FMODEvents : MonoBehaviour
     [field: SerializeField] public EventReference ButtonHover { get; private set; }  
 
     [field: Header("Music")]
-    [field: SerializeField] public EventReference placeholderMusic { get; private set; }        // [PLACEHOLDER]
-    
+    [field: SerializeField] public EventReference MainMenuMusic { get; private set; }
+    [field: SerializeField] public EventReference LowDnB { get; private set; }
+    [field: SerializeField] public EventReference DnbAndCello{ get; private set; }
+    [field: SerializeField] public EventReference CelloSolo { get; private set; }
+    [field: SerializeField] public EventReference SoloViolin { get; private set; }
+        [field: SerializeField] public EventReference HarpsichordandGuitar { get; private set; }
+
+
     [field: Header("Gameplay")]
     [field: SerializeField] public EventReference PlayerAttack { get; private set; }   
+    [field: SerializeField] public EventReference PlayerWalk { get; private set; }   
     
     [field: SerializeField] public EventReference SkeletonAttack { get; private set; }   
      [field: SerializeField] public EventReference WoodenCreatureAttack { get; private set; }
